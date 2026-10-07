@@ -1,0 +1,115 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  customer
+  staff
+  owner
+}
+
+enum TransactionType {
+  earn
+  redeem
+  adjust
+}
+
+model User {
+  id           BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  name         String    @db.VarChar(120)
+  email        String    @unique(map: "users_email_unique") @db.VarChar(190)
+  phone        String?   @db.VarChar(32)
+  firebase_uid String    @unique(map: "users_firebase_uid_unique") @db.VarChar(128)
+  role         UserRole  @default(customer)
+  created_at   DateTime? @default(now()) @db.Timestamp(0)
+  updated_at   DateTime? @updatedAt @db.Timestamp(0)
+  deleted_at   DateTime? @db.Timestamp(0)
+
+  loyaltyAccount       LoyaltyAccount?
+  transactions         Transaction[]   @relation("UserTransactions")
+  staffTransactions    Transaction[]   @relation("StaffTransactions")
+  customerRedemptions  Redemption[]    @relation("CustomerRedemptions")
+  confirmedRedemptions Redemption[]    @relation("StaffRedemptions")
+
+  @@map("users")
+}
+
+model LoyaltyAccount {
+  id                    BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  user_id               BigInt    @unique(map: "loyalty_accounts_user_id_unique") @db.UnsignedBigInt
+  current_points        Int       @default(0) @db.UnsignedInt
+  total_points_earned   Int       @default(0) @db.UnsignedInt
+  total_points_redeemed Int       @default(0) @db.UnsignedInt
+  last_earned_at        DateTime? @db.Timestamp(0)
+  created_at            DateTime? @default(now()) @db.Timestamp(0)
+  updated_at            DateTime? @updatedAt @db.Timestamp(0)
+  deleted_at            DateTime? @db.Timestamp(0)
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade, map: "loyalty_accounts_user_id_foreign")
+
+  @@map("loyalty_accounts")
+}
+
+model Reward {
+  id              BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  name            String    @db.VarChar(120)
+  description     String?   @db.VarChar(500)
+  points_required Int       @db.UnsignedInt
+  active          Boolean   @default(true)
+  created_at      DateTime? @default(now()) @db.Timestamp(0)
+  updated_at      DateTime? @updatedAt @db.Timestamp(0)
+  deleted_at      DateTime? @db.Timestamp(0)
+
+  redemptions Redemption[]
+
+  @@map("rewards")
+}
+
+model Redemption {
+  id                    BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  jti                   String    @unique(map: "redemptions_jti_unique") @db.Char(36)
+  customer_id           BigInt    @db.UnsignedBigInt
+  reward_id             BigInt    @db.UnsignedBigInt
+  points_cost           Int       @db.UnsignedInt
+  confirmed_by_staff_id BigInt    @db.UnsignedBigInt
+  confirmed_at          DateTime  @default(now()) @db.Timestamp(0)
+  created_at            DateTime? @default(now()) @db.Timestamp(0)
+  updated_at            DateTime? @updatedAt @db.Timestamp(0)
+
+  customer         User          @relation("CustomerRedemptions", fields: [customer_id], references: [id], map: "redemptions_customer_id_foreign")
+  reward           Reward        @relation(fields: [reward_id], references: [id], map: "redemptions_reward_id_foreign")
+  confirmedByStaff User          @relation("StaffRedemptions", fields: [confirmed_by_staff_id], references: [id], map: "redemptions_confirmed_by_staff_id_foreign")
+  transactions     Transaction[]
+
+  @@index([customer_id], map: "redemptions_customer_id_foreign")
+  @@index([reward_id], map: "redemptions_reward_id_foreign")
+  @@index([confirmed_by_staff_id], map: "redemptions_confirmed_by_staff_id_foreign")
+  @@map("redemptions")
+}
+
+model Transaction {
+  id            BigInt          @id @default(autoincrement()) @db.UnsignedBigInt
+  user_id       BigInt          @db.UnsignedBigInt
+  type          TransactionType
+  points        Int             @db.UnsignedInt
+  amount        Decimal?        @db.Decimal(10, 2)
+  staff_id      BigInt?         @db.UnsignedBigInt
+  redemption_id BigInt?         @db.UnsignedBigInt
+  note          String?         @db.VarChar(500)
+  created_at    DateTime?       @default(now()) @db.Timestamp(0)
+  updated_at    DateTime?       @updatedAt @db.Timestamp(0)
+
+  user       User        @relation("UserTransactions", fields: [user_id], references: [id], map: "transactions_user_id_foreign")
+  staff      User?       @relation("StaffTransactions", fields: [staff_id], references: [id], map: "transactions_staff_id_foreign")
+  redemption Redemption? @relation(fields: [redemption_id], references: [id], map: "transactions_redemption_id_foreign")
+
+  @@index([user_id], map: "transactions_user_id_foreign")
+  @@index([staff_id], map: "transactions_staff_id_foreign")
+  @@index([redemption_id], map: "transactions_redemption_id_foreign")
+  @@map("transactions")
+}
