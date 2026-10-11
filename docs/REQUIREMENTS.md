@@ -1,61 +1,57 @@
-# BrewPoints - Finalized Requirements & Implementation Plan
+# BrewPoints — Core Requirements & System Architecture
 
-## Core Requirements
+## 1. Core Requirements
 
 - **Tenancy**: Single-tenant (designed for a single coffee shop).
-- **Points System**: 
-    - Points earned based on the total spent amount.
-    - Staff manually enter the purchase total into the application to allocate points.
-- **Rewards**: 
-    - Fixed point cost for each reward (e.g., 100 points = Free Espresso).
+- **Points System**:
+  - Points earned based on total purchase spend ($1.00 spent = 1 point, half-up rounding).
+  - Staff enters purchase amount at checkout to allocate points.
+- **Rewards**:
+  - Fixed point cost for each reward item (e.g., 100 points = Free Espresso).
+  - Owners configure and manage rewards via web admin portal.
 - **Authentication & Authorization**:
-    - **Authentication**: Firebase used for Authentication and OTP purposes.
-    - **Authorization**: Roles (Customer, Staff, Owner) are stored and managed in the MySQL database.
-- **Security**:
-    - Dynamic QR codes used for both point allocation and reward redemption to prevent fraud (e.g., sharing screenshots).
+  - **Authentication**: Managed via **Supabase Auth** (Email/Password, Magic Link / OTP, Google OAuth).
+  - **Authorization**: User roles (`customer`, `staff`, `owner`) stored in PostgreSQL `profiles` table linked 1:1 with `auth.users.id`.
+- **Security & Fraud Prevention**:
+  - Dynamic JWS tokens encoded in QR codes (`brewpoints://allocate` and `brewpoints://redeem`).
+  - Strict expiration TTLs (10m allocation, 15m redemption) and UUID v4 `jti` anti-replay enforcement.
 - **Redemption Workflow**:
-    - Customer selects a reward in the mobile app.
-    - Customer presents a redemption code/QR to staff.
-    - Staff confirms the redemption.
-    - Points are deducted from the customer's account **after** staff confirmation.
+  - Customer selects eligible reward $\rightarrow$ app generates dynamic redemption QR $\rightarrow$ staff scans QR $\rightarrow$ staff confirms $\rightarrow$ points deducted atomically in a PostgreSQL transaction.
 
 ---
 
-## Implementation Plan
+## 2. Technology Stack
 
-### Phase 1: Backend Foundation (Laravel & MySQL)
-- Design and implement the database schema:
-    - `users` (with role column)
-    - `loyalty_accounts`
-    - `rewards`
-    - `transactions`
-    - `redemptions`
-- Integrate Firebase Auth for API authentication.
-- Create Point Allocation API for staff to add points based on spend.
+| Layer | Technology | Details |
+|---|---|---|
+| **Database** | **Supabase (PostgreSQL)** | Hosted PostgreSQL with Row Level Security (RLS), ACID transactions, and atomic RPC functions |
+| **Auth Provider** | **Supabase Auth** | Built-in JWT issuance, secure session management, OAuth, and OTP |
+| **Backend API** | **Next.js 16 (App Router)** | Route Handlers (`/api/v1/*`) with Bearer token authentication and `@supabase/ssr` / `@supabase/supabase-js` |
+| **Admin Portal** | **Next.js 16 + React 19** | Server Components, Tailwind CSS v4, `shadcn/ui`, and Recharts for live analytics |
+| **Mobile App** | **React Native (Expo)** | Cross-platform Customer Loyalty Wallet and Staff POS Scanner app |
 
-### Phase 2: Reward & Redemption Logic
-- Implement Reward Management API for the Admin.
-- Implement the Redemption Flow:
-    - Endpoint to generate a temporary redemption token for a selected reward.
-    - Endpoint for staff to verify and confirm the token, triggering the point deduction.
+---
 
-### Phase 3: Mobile App Development (React Native)
-- **Customer Interface**:
-    - Login/Authentication via Firebase.
-    - Generation of dynamic QR codes for points.
-    - Reward catalog and redemption trigger.
-    - Transaction and reward history.
-- **Staff Interface**:
-    - QR Scanner for points and redemptions.
-    - Manual spend entry form.
-    - Redemption confirmation screen.
+## 3. High-Level Implementation Phases
 
-### Phase 4: Admin Dashboard (Web)
-- Management portal for:
-    - Creating and editing rewards.
-    - Monitoring user activity and total points.
-    - Basic analytics on reward usage and customer engagement.
+### Phase 1: Supabase Database Setup & Next.js Backend Foundation
+- Supabase PostgreSQL schema: `profiles`, `loyalty_accounts`, `rewards`, `transactions`, `redemptions`.
+- Supabase Auth integration: JWT validation for REST requests (`Authorization: Bearer <jwt>`) and session cookies for web portal.
+- Phase 1 API endpoints: `GET /api/v1/me`, `GET /api/v1/me/balance`, `GET /api/v1/me/transactions`, and `POST /api/v1/points/allocate`.
 
-### Phase 5: Testing & Verification
-- End-to-end testing of the complete point-to-reward lifecycle.
-- Security audit of the dynamic QR implementation to ensure tokens expire correctly.
+### Phase 2: Reward Catalog & Atomic JWS Redemption Engine
+- Reward management API for shop owners (`GET|POST|PATCH|DELETE /api/v1/rewards`).
+- Dynamic QR token generation (HS256 JWS with `jti` and TTL).
+- Atomic redemption confirmation with row-level locking (`SELECT ... FOR UPDATE` or Supabase RPC function) and anti-replay protection.
+
+### Phase 3: Mobile Application Development (React Native & Expo)
+- **Customer Interface**: Digital loyalty card, dynamic allocation QR, reward catalog, redemption QR modal, transaction history.
+- **Staff Interface**: Camera QR barcode scanner, quick counter lookup, purchase spend allocation form, redemption confirmation receipt.
+
+### Phase 4: Owner Admin Dashboard (Next.js Web Portal)
+- Live program health analytics (point velocity, redemption growth, reward popularity, staff activity).
+- Staff directory CRUD (create, update, activate/deactivate barista accounts).
+- Reward catalog manager with active/inactive toggles.
+
+### Phase 5: Verification & End-to-End Testing
+- Automated integration test suite covering points calculation, token expiration, replay attack prevention, and concurrent redemptions.

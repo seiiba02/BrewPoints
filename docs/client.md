@@ -10,193 +10,96 @@ We would like a simple digital loyalty system that allows customers to earn poin
 
 ## Project Objective
 
-Develop a mobile-first loyalty platform that allows customers to collect points, view rewards, and redeem them digitally.
+Develop a modern, mobile-first loyalty platform that allows customers to collect points, view rewards, and redeem them digitally.
 
-The system should be simple enough for a small business while providing useful customer insights.
+The system should be simple enough for a small business while providing useful customer insights, robust fraud prevention (anti-screenshot dynamic QR codes), and lightning-fast staff interactions (<10 seconds per scan).
 
 ---
 
 ## Target Users
 
 ### Customers
-- Register an account
-- Earn points from purchases
-- Redeem rewards
-- View reward history
+- Register and authenticate seamlessly via Email OTP / Magic Link or Google Sign-In.
+- View digital loyalty card, live point balance, and milestone progress.
+- Generate dynamic single-use QR codes to earn points at checkout.
+- Browse reward catalog and generate dynamic redemption QR codes.
+- View full transaction and redemption history.
 
 ### Shop Staff
-- Verify customer purchases
-- Add loyalty points
-- Redeem rewards
+- Scan customer dynamic QR codes with a unified camera scanner.
+- Allocate points based on purchase amount ($1.00 spent = 1 point earned).
+- Confirm reward redemptions with atomic point deduction in under 10 seconds.
 
 ### Shop Owner
-- Monitor customer activity
-- Create rewards
-- View basic analytics
+- Monitor program health, point velocity, and customer engagement via web dashboard.
+- Create, edit, activate, or archive rewards in the reward catalog.
+- Manage staff accounts and track barista activity.
 
 ---
 
 ## Core Features
 
-### 1. User Registration
-- Email registration and login
-- Google Sign-In
-- Profile management
+### 1. User Authentication & Profile
+- Powered by **Supabase Auth**.
+- Email & password, Magic Link / OTP, and Google OAuth.
+- Role-based profile management (`customer`, `staff`, `owner`).
 
 ### 2. Digital Loyalty Card
-- Virtual point balance
-- Progress tracker toward rewards
-- Loyalty status display
+- Virtual point balance with lifetime statistics.
+- Dynamic milestone progress tracker targeting the next available reward.
+- Loyalty tier status display.
 
-### 3. QR Code Scanning
-- Unique QR code for each customer
-- Staff can scan customer QR codes
-- Automatic point allocation
+### 3. Dynamic QR Code Scanning & Fraud Prevention
+- Time-limited, signed HS256 JWS QR codes (`brewpoints://allocate?token=...` with 10-minute TTL).
+- Single-use redemption QR codes (`brewpoints://redeem?token=...` with 15-minute TTL and UUID v4 `jti` anti-replay key).
+- Screenshot prevention: static screenshots expire and duplicate submissions are rejected with HTTP 409 Conflict.
 
 ### 4. Rewards System
-Examples:
-- Free Espresso
-- Free Pastry
-- 10% Discount Voucher
-- Buy 10 Drinks, Get 1 Free
+- Fixed point cost per reward (e.g., 100 points = Free Espresso, 150 points = Free Pastry).
+- Dynamic reward eligibility display.
+- Atomic point deduction: points are deducted from the customer's balance **only after** staff scans and confirms redemption.
 
-Features:
-- Reward catalog
-- Point redemption
-- Reward eligibility tracking
+### 5. Transaction History & Audit Ledger
+- Immutable append-only ledger for all point earnings, redemptions, and adjustments.
+- Detailed audit logs capturing timestamp, staff verifier, and purchase amount.
 
-### 5. Transaction History
-- Points earned
-- Rewards redeemed
-- Purchase history
-- Loyalty activity log
-
-### 6. Admin Dashboard
-- Customer statistics
-- Reward management
-- Redemption history
-- Activity monitoring
+### 6. Owner Web Admin Portal
+- Real-time business analytics (point velocity, redemption growth, reward popularity).
+- Full Reward Catalog CRUD.
+- Staff Member Management CRUD.
 
 ---
 
-## Technical Requirements
+## Technical Stack
 
-### Frontend
-- React Native (Mobile Application)
+### Database & Authentication: Supabase
+- **Database**: Supabase PostgreSQL with Row Level Security (RLS) and atomic SQL procedures.
+- **Authentication**: Supabase Auth (`auth.users`) with JWT Bearer tokens and SSR session cookies.
 
-### Backend
-- Laravel REST API
+### Backend & Web Portal: Next.js
+- **Framework**: Next.js 16 (App Router) + React 19 + TypeScript.
+- **Architecture**: REST API (`/api/v1/*`), Server Actions, and Owner Admin Portal.
+- **Styling**: Tailwind CSS v4 + `shadcn/ui` + Recharts.
 
-### Database
-- MySQL
-
-### Authentication
-- Firebase Authentication
-
-### QR Code Processing
-- React Native QR Scanner
-- QR Code Generator
+### Mobile Application: React Native (Expo)
+- **Framework**: React Native with Expo SDK + TypeScript.
+- **Navigation**: React Navigation (Stack + Bottom Tabs).
+- **Scanner & QR**: Camera barcode scanner + SVG QR generator.
 
 ---
 
 ## Deliverables
 
-### Mobile Application
-- Customer-facing mobile app
-- Staff-facing mobile interface
-
-### Admin Dashboard
-- Web-based management portal
-
-### Documentation
-- Database ERD
-- API Documentation
-- User Manual
-- Installation Guide
-
----
-
-## Nice-to-Have Features
-
-### Push Notifications
-Notify users when:
-- They earn points
-- Rewards become available
-- Special promotions are launched
-
-### Referral Program
-- Invite friends
-- Earn bonus points
-
-### Birthday Rewards
-- Automatic birthday coupons
-
-### Customer Leaderboard
-- Top customers of the month
-- Gamified experience
+1. **Mobile Application**: React Native (Expo) app providing Customer Wallet and Staff Scanner interfaces.
+2. **Admin Web Dashboard**: Responsive Next.js web application for coffee shop owners.
+3. **Backend API**: Next.js REST API (`/api/v1/*`) integrated with Supabase PostgreSQL and Supabase Auth.
+4. **Documentation**: Architectural specification, Supabase schema & RLS policies, and API documentation.
 
 ---
 
 ## Success Criteria
 
-The platform should allow:
-
-- Customers to collect and redeem points digitally.
-- Staff to add points in less than 10 seconds.
-- Owners to track customer engagement and reward usage.
-- Rewards to be redeemed quickly and reliably.
-
----
-
-## Suggested Database Entities
-
-### Users
-- id
-- name
-- email
-- role
-
-### LoyaltyAccounts
-- id
-- user_id
-- current_points
-- total_points_earned
-
-### Rewards
-- id
-- name
-- description
-- points_required
-
-### Transactions
-- id
-- user_id
-- points_added
-- points_redeemed
-- transaction_type
-
-### Redemptions
-- id
-- user_id
-- reward_id
-- redeemed_at
-
----
-
-## Estimated Timeline
-
-| Phase | Duration |
-|---------|----------|
-| Planning & Design | 1 Week |
-| Backend Development | 1 Week |
-| Mobile Development | 2 Weeks |
-| Dashboard Development | 1 Week |
-| Testing & Documentation | 1 Week |
-
-**Total Estimated Duration:** 6 Weeks
-
----
-
-## Expected Outcome
-
-The completed system should replace traditional paper loyalty cards with a digital solution that improves customer retention, simplifies reward management, and provides actionable business insights for the coffee shop owner.
+- Customers collect and redeem points digitally with zero friction.
+- Staff complete point allocation or redemption in under 10 seconds.
+- Zero fraud: screenshots and replayed QR codes are automatically blocked.
+- Owners gain real-time visibility into customer retention and reward usage.

@@ -1,148 +1,100 @@
-# BrewPoints — Phase 2 Plan
+# BrewPoints — Phase 2 Plan (Reward Management & Atomic Redemption Engine)
 
-**Phase 2 goal:** Implement the Reward Management API and the complete Reward Redemption flow, including the audit ledger.
-
----
-
-## 1. Data Model Extensions
-
-Two new core tables are added.
-
-### 1.1 `redemptions`
-
-An immutable log of confirmed reward claims.
-
-| Column | Type | Notes |
-|---|---|---|
-| `id` | BIGINT UNSIGNED PK | auto-increment |
-| `jti` | CHAR(36) UNIQUE NOT NULL | The unique ID from the JWS token (UUID v4) |
-| `customer_id` | BIGINT UNSIGNED FK → `users.id` | The redeemer |
-| `reward_id` | BIGINT UNSIGNED FK → `rewards.id` | The reward claimed |
-| `points_cost` | INT UNSIGNED | Snapshotted current `points_required` at confirm-time |
-| `confirmed_by_staff_id` | BIGINT UNSIGNED FK → `users.id` | The staff member who verified the QR |
-| `confirmed_at` | TIMESTAMP | Time of confirmation |
-| `created_at`, `updated_at` | TIMESTAMP | |
-
-**Constraint:** No soft deletes. Once a redemption is confirmed, the row is permanent.
-
-### 1.2 `transactions`
-
-The append-only financial ledger for all points movements.
-
-| Column | Type | Notes |
-|---|---|---|
-| `id` | BIGINT UNSIGNED PK | auto-increment |
-| `user_id` | BIGINT UNSIGNED FK → `users.id` | Whose balance changed |
-| `type` | ENUM('earn','redeem','adjust') | Type of movement |
-| `points` | INT UNSIGNED | Number of points involved |
-| `amount` | DECIMAL(10,2) NULL | The purchase total (only for `earn` types) |
-| `staff_id` | BIGINT UNSIGNED FK → `users.id` NULL | Staff who triggered the action |
-| `redemption_id` | BIGINT UNSIGNED FK → `redemptions.id` NULL | Link to the redemption row (only for `redeem`) |
-| `note` | VARCHAR(500) NULL | For manual adjustments or audit notes |
-| `created_at`, `updated_at` | TIMESTAMP | |
+**Phase 2 Goal:** Implement the reward catalog management endpoints, dynamic JWS token generation, and the atomic redemption confirmation workflow backed by Supabase PostgreSQL transactions.
 
 ---
 
-## 2. Reward Management (Admin API)
+## 1. Schema Extensions (Phase 2)
 
-Allows the Owner to manage the catalog of available rewards.
+### 1.1 `redemptions` (Immutable Ledger)
+Records fulfilled reward redemptions. Features a UUID v4 `jti` to block screenshot replay attacks.
+```sql
+CREATE TABLE public.redemptions (
+    id BIGSERIAL PRIMARY KEY,
+    jti UUID UNIQUE NOT NULL,
+    customer_id UUID NOT NULL REFERENCES public.profiles(id),
+    reward_id BIGINT NOT NULL REFERENCES public.rewards(id),
+    points_cost INT NOT NULL,
+    confirmed_by_staff_id UUID NOT NULL REFERENCES public.profiles(id),
+    confirmed_at TIMESTAMPTZ DEFAULT now(),
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+```
 
-### 2.1 Endpoints
-
-| Method | Endpoint | Auth | Action |
-|---|---|---|---|
-| `GET` | `/api/v1/rewards` | Authed | Returns only `active=true` and non-deleted rewards. |
-| `POST` | `/api/v1/rewards` | `role:owner` | Create a new reward. |
-| `PATCH` | `/api/v1/rewards/{id}` | `role:owner` | Partially update reward details. |
-| `DELETE` | `/api/v1/rewards/{id}` | `role:owner` | Soft-delete reward (`deleted_at`). |
-
-### 2.2 Validation & Semantics
-- **Naming**: `name` must be unique among rewards that are not soft-deleted.
-- **Cost Guard**: `points_required` must be between 1 and `config('loyalty.max_reward_cost')`.
-- **Active Flag**: `active` boolean allows the owner to "pause" a reward without deleting it from the system.
-
----
-
-## 3. Redemption Flow
-
-The mechanism for a customer to claim a reward using a dynamic QR code.
-
-### 3.1 Minting the Token (`POST /api/v1/redemptions`)
-
-1. **Auth**: Requires a valid customer/staff/owner bearer token.
-2. **Validation**:
-   - Check if `reward_id` exists, is `active=true`, and is not soft-deleted.
-   - Check if `customer.current_points >= reward.points_required`.
-   - Return `422` if insufficient points.
-3. **Token Generation**:
-   - Mints a **JWS HS256** compact token.
-   - **Claims**: `{ "customer_id": X, "reward_id": Y, "jti": "uuid-v4", "iat": now, "exp": now + 15m }`.
-   - Token secret is stored in `.env`.
-4. **Response**:
-   - Returns the token as a deep-link URL: `brewpoints://redeem?token=<jws>`.
-   - Includes current balance and the reward object for UI convenience.
-
-### 3.2 Confirming the Token (`POST /api/v1/staff/redemptions/confirm`)
-
-1. **Auth**: Requires `role:staff|owner` bearer token.
-2. **Payload**: `{ "qr_payload": "brewpoints://redeem?token=..." }`.
-3. **Process (Atomic Transaction)**:
-   - **Extract**: Parse URL and verify JWS signature + expiry (`exp`).
-   - **Lock**: `SELECT ... FOR UPDATE` on the customer's `loyalty_accounts` row.
-   - **Verify**:
-     - Reward is still `active` and not deleted.
-     - Customer still has enough points.
-   - **Commit**:
-     - Insert `redemptions` row. Fail with `409 Conflict` if `jti` already exists (anti-replay).
-     - Deduct `points_required` from `loyalty_accounts.current_points`.
-     - Increment `loyalty_accounts.total_points_redeemed`.
-     - Insert `transactions` row (type: `redeem`).
-4. **Response**:
-   - Returns new balance.
-   - Errors: `401` (bad token), `410 Gone` (expired), `409` (already redeemed or inactive), `422` (insufficient points).
+### 1.2 `transactions` (Append-Only Audit Ledger)
+Captures every point addition, deduction, or adjustment.
+```sql
+CREATE TABLE public.transactions (
+    id BIGSERIAL PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES public.profiles(id),
+    type TEXT NOT NULL CHECK (type IN ('earn', 'redeem', 'adjust')),
+    points INT NOT NULL,
+    amount NUMERIC(10, 2),
+    staff_id UUID REFERENCES public.profiles(id),
+    redemption_id BIGINT REFERENCES public.redemptions(id),
+    note VARCHAR(500),
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+```
 
 ---
 
-## 4. API Enhancements
+## 2. Reward Management Endpoints (Owner Only)
 
-### 4.1 Transaction History (`GET /api/v1/me/transactions`)
-- Now implemented as a real query to the `transactions` table.
-- Returns paginated results, ordered by `created_at DESC`.
-- accessible to any authenticated user for their own records.
-
-### 4.2 Throttling
-- Apply `throttle:10,1` (10 requests per minute) to:
-  - `POST /api/v1/redemptions` (Prevent token spam)
-  - `POST /api/v1/points/allocate` (Prevent allocation spam)
-
-### 4.3 Phase 1 Backport
-- Upgrade the `POST /api/v1/points/allocate` endpoint to write a `transactions` row (type: `earn`) in the same transaction as the balance update.
+- `GET /api/v1/rewards`: Returns active rewards (or all non-deleted rewards if `?include_inactive=1`).
+- `POST /api/v1/rewards`: Creates a new reward (`name`, `description`, `points_required`, `active`). Validates unique name among active rewards.
+- `PATCH /api/v1/rewards/:id`: Updates an existing reward.
+- `DELETE /api/v1/rewards/:id`: Soft-deletes a reward (`deleted_at = now()`).
 
 ---
 
-## 5. Build Order
+## 3. Dynamic QR Redemption Workflow
 
-1. **Migrations**: `transactions` $\rightarrow$ `redemptions`.
-2. **Models**: Update `User` and `LoyaltyAccount` with `transactions()` and `redemptions()` relationships.
-3. **Config**: Add `max_reward_cost` and `redemption_token_ttl` to `config/loyalty.php`.
-4. **Reward Management**: Implement Owner CRUD endpoints.
-5. **Redemption Minting**: Implement `POST /api/v1/redemptions` + JWS logic.
-6. **Redemption Confirmation**: Implement `POST /api/v1/staff/redemptions/confirm` with DB locking.
-7. **Audit Log**: Implement `GET /api/v1/me/transactions`.
-8. **Hardening**: Apply `throttle` middleware and upgrade Phase 1 allocate endpoint.
-9. **Verification**:
-   - Test reward creation $\rightarrow$ listing $\rightarrow$ deletion.
-   - Test token mint $\rightarrow$ confirm $\rightarrow$ verify points deducted and transaction written.
-   - Test replay attack (same QR twice) $\rightarrow$ `409 Conflict`.
-   - Test expired token $\rightarrow$ `410 Gone`.
-   - Test insufficient points $\rightarrow$ `422` at mint.
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Customer as Customer (Mobile)
+    participant API as Next.js API
+    participant DB as Supabase PostgreSQL
+    actor Staff as Staff / Barista
 
----
+    Customer->>API: POST /api/v1/redemptions { reward_id }
+    API->>DB: Check balance & active reward
+    API-->>Customer: Return brewpoints://redeem?token=<jws> (15m TTL, UUID jti)
+    Customer->>Staff: Displays dynamic QR code
+    Staff->>API: POST /api/v1/staff/scan-preview { qr_payload }
+    API-->>Staff: Return customer name, balance & reward details
+    Staff->>API: POST /api/v1/staff/redemptions/confirm { qr_payload }
+    rect rgb(240, 250, 240)
+        Note over API,DB: PostgreSQL ACID Transaction
+        API->>DB: Check jti uniqueness in redemptions (anti-replay)
+        API->>DB: Lock loyalty_accounts row (SELECT ... FOR UPDATE)
+        API->>DB: Deduct points & increment total_points_redeemed
+        API->>DB: Insert into redemptions & transactions (type: redeem)
+    end
+    API-->>Staff: Return confirmation receipt
+```
 
-## 6. Out of Scope (Phase 2)
+### 3.1 Step 1: Minting (`POST /api/v1/redemptions`)
+- Customer selects a reward in the catalog.
+- API verifies `current_points >= points_required` (`422` if insufficient).
+- Generates a signed HS256 JWS token:
+  - Claims: `{ type: 'redeem', customer_id, reward_id, jti: uuid_v4(), iat, exp: now + 900 }`
+  - Payload returned: `brewpoints://redeem?token=<jws>` (15-minute validity).
 
-- Mobile App UI (Phase 3)
-- Admin Web Dashboard (Phase 4)
-- Reward Category/Tiering
-- Partial redemptions (e.g., "use 50 points for a discount")
-- Transaction reversals (Refunds)
+### 3.2 Step 2: Staff Scan Preview (`POST /api/v1/staff/scan-preview`)
+- Staff scans the customer's QR code.
+- Decodes the token, checks signature and expiration (`410` if expired, `401` if invalid).
+- Checks whether `jti` has already been redeemed (`409` if duplicate).
+- Returns customer name, current balance, and reward info for staff verification.
+
+### 3.3 Step 3: Atomic Confirmation (`POST /api/v1/staff/redemptions/confirm`)
+- Staff clicks "Confirm Redemption".
+- API runs a PostgreSQL transaction:
+  1. `SELECT id, current_points FROM loyalty_accounts WHERE user_id = $1 FOR UPDATE`
+  2. Ensures `jti` is not in `public.redemptions` (throws `409 Conflict` on replay).
+  3. Ensures customer still has sufficient points (throws `422 Unprocessable`).
+  4. Inserts row into `public.redemptions`.
+  5. Updates `loyalty_accounts` balance.
+  6. Inserts row into `public.transactions` (`type = 'redeem'`).
+- Returns confirmation payload with new balance and reward name.

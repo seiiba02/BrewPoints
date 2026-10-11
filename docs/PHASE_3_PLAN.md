@@ -1,76 +1,97 @@
-# BrewPoints — Phase 3 Plan: Mobile App (React Native)
+# BrewPoints — Phase 3 Plan (Mobile Application: React Native & Expo)
 
-**Phase 3 goal:** Develop a cross-role mobile application using React Native (Expo) that allows customers to manage their points/rewards and staff to allocate points and confirm redemptions.
-
----
-
-## 1. Architecture & Tech Stack
-
-- **Framework**: React Native with Expo (Managed Workflow).
-- **State Management**: Context API or Zustand for user session and role management.
-- **Authentication**: Firebase Auth (Phone/OTP and Email/Password).
-- **Navigation**: React Navigation (Stack and Tab navigation).
-- **QR Handling**: `expo-barcode-scanner` for staff; `react-native-qrcode-svg` for customers.
+**Phase 3 Goal:** Build the cross-platform mobile application using React Native and Expo, providing dedicated experiences for Customers (Loyalty Card & Rewards) and Staff (QR Scanner & Point Allocation).
 
 ---
 
-## 2. Authentication & Authorization
+## 1. Stack & Architecture
 
-- **Onboarding**: Users can register/login via both Email and Phone Number.
-- **Role Discovery**: Immediately after Firebase token validation, the app calls `GET /api/v1/me` to retrieve the user's role (`Customer`, `Staff`, or `Owner`) from the MySQL database.
-- **UI Routing**: The app dynamically loads the **Customer Dashboard** or **Staff Dashboard** based on the returned role.
-
----
-
-## 3. Customer Interface
-
-### 3.1 Point Allocation QR
-- **Dynamic Generation**: The app generates a JWS token signed by the backend with a **10-minute TTL**.
-- **Auto-Refresh**: The QR code automatically refreshes periodically to prevent screenshot fraud.
-- **Payload**: `brewpoints://allocate?token=<jws>`.
-
-### 3.2 Reward Catalog & Redemption
-- **Catalog**: List of active rewards.
-- **Detail View**: A dedicated screen for each reward showing points cost and description.
-- **Redeem Action**: A "Redeem" button that:
-    1. Warns the user: "Points will be deducted once staff scans this QR."
-    2. Calls `POST /api/v1/redemptions` to mint a redemption token.
-    3. Displays the redemption QR (`brewpoints://redeem?token=<jws>`).
-
-### 3.3 Engagement & History
-- **Milestone Visualization**: A progress indicator targeting the **cheapest reward** the user cannot yet afford, motivating them to reach the next "freebie."
-- **Transaction History**: 
-    - A paginated list of points earned/spent.
-    - A "Rewards Summary" section at the top showing total value saved or total rewards claimed.
+| Item | Choice |
+|---|---|
+| Framework | React Native (Expo SDK 52+) with TypeScript |
+| Navigation | React Navigation (Stack Navigator + Bottom Tabs) |
+| State Management | Zustand |
+| Authentication | **Supabase Auth** (`@supabase/supabase-js` + `expo-secure-store`) |
+| QR Code Scanner | `expo-camera` / `expo-barcode-scanner` |
+| QR Code Generator | `react-native-qrcode-svg` |
+| HTTP Client | Axios or Fetch with Bearer token interceptor |
 
 ---
 
-## 4. Staff Interface
+## 2. Customer Interface
 
-### 4.1 The Unified Scanner
-- A single scanner that parses the URL scheme:
-    - `brewpoints://allocate` $\rightarrow$ Routes to **Allocation Flow**.
-    - `brewpoints://redeem` $\rightarrow$ Routes to **Redemption Flow**.
+### 2.1 Screen Structure
+```
+CustomerTabs (Bottom Tabs)
+├── Home (HomeScreen)
+│   ├── Digital Loyalty Card (Current Balance & Lifetime Stats)
+│   ├── Dynamic Milestone Progress Tracker (Next Reward Goal)
+│   └── Dynamic Earn Points QR Code (10m TTL, brewpoints://allocate)
+├── Rewards (RewardsScreen)
+│   ├── Reward Catalog Grid
+│   └── Dynamic Redemption QR Modal (15m TTL, brewpoints://redeem)
+└── History (HistoryScreen)
+    └── Paginated Transaction Ledger (Earned: Green, Redeemed: Amber)
+```
 
-### 4.2 Allocation Flow
-1. **Scan**: Capture "Points QR."
-2. **Identification**: Display the **Customer's Name** and **Current Balance**.
-3. **Entry**: Staff enters the purchase total (USD).
-4. **Confirmation**: A summary screen (e.g., "Spend: $15 $\rightarrow$ Earn: 15 pts") to prevent typos.
-5. **Submission**: Call `POST /api/v1/points/allocate`.
-
-### 4.3 Redemption Flow
-1. **Scan**: Capture "Redemption QR."
-2. **Verification**: Display a summary screen containing:
-    - Customer Name.
-    - Reward Name (e.g., "Free Espresso").
-    - Points Cost.
-    - Customer's Current Balance.
-3. **Confirmation**: Staff hits "Confirm" $\rightarrow$ Call `POST /api/v1/staff/redemptions/confirm`.
+### 2.2 Key Customer Features
+1. **Digital Loyalty Card**: Displays customer's virtual card with live balance and milestone progress bar targeting the cheapest unaffordable reward.
+2. **Dynamic Earn Points QR**: Automatically generates a 10-minute signed JWS code (`brewpoints://allocate?token=...`) with a live countdown timer and manual refresh button to prevent screenshot sharing.
+3. **Reward Redemption Modal**: Tapping "Redeem" checks balance, mints a 15-minute single-use redemption QR (`brewpoints://redeem?token=...`), and displays it with instructions for the barista.
+4. **Transaction History**: Displays a scrollable ledger with timestamp, barista name, spend amount, and net point changes.
 
 ---
 
-## 5. Resilience & Edge Cases
+## 3. Staff Interface
 
-- **Connectivity**: The app implements a "fail-fast" strategy. If the API is unreachable, it displays a clear **"Connection Error"** and requires a retry to prevent double-spending/offline sync issues.
-- **Session Expiry**: Handles Firebase token expiration by redirecting to the login screen.
+### 3.1 Screen Structure
+```
+StaffStack (Stack Navigator)
+├── Dashboard (StaffDashboardScreen)
+│   └── Summary & Quick Scan Action
+├── Scanner (ScannerScreen)
+│   └── Unified Camera Barcode Scanner
+├── Point Allocation (AllocationScreen)
+│   ├── Customer Identity & Balance Preview
+│   ├── Purchase Spend Entry ($1.00 – $1,000.00)
+│   └── Calculated Points Preview
+└── Redemption Confirmation (RedemptionConfirmationScreen)
+    ├── Customer & Reward Summary
+    └── Atomic Confirmation Button
+```
+
+### 3.2 Key Staff Features
+1. **Unified Camera Scanner**:
+   - Single camera viewfinder that reads any customer QR code.
+   - Automatically routes `brewpoints://allocate` to the Point Allocation screen and `brewpoints://redeem` to the Redemption Confirmation screen.
+2. **Point Allocation Flow**:
+   - Displays customer name and current balance.
+   - Numerical keypad entry for purchase total.
+   - Live preview of points earned (`Math.floor(amount * 1 + 0.5)`).
+   - Instant confirmation receipt in under 10 seconds.
+3. **Redemption Confirmation Flow**:
+   - Displays customer name, reward item, points cost, and post-redemption balance.
+   - One-tap confirmation button calling `POST /api/v1/staff/redemptions/confirm`.
+
+---
+
+## 4. Mobile Supabase Integration
+
+- **Secure Session Storage**: Uses `expo-secure-store` as Supabase Auth's custom storage provider:
+  ```ts
+  import { createClient } from '@supabase/supabase-js';
+  import * as SecureStore from 'expo-secure-store';
+
+  export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: {
+      storage: {
+        getItem: (key) => SecureStore.getItemAsync(key),
+        setItem: (key, val) => SecureStore.setItemAsync(key, val),
+        removeItem: (key) => SecureStore.deleteItemAsync(key),
+      },
+      autoRefreshToken: true,
+      persistSession: true,
+    },
+  });
+  ```
+- **API Request Interceptor**: Automatically attaches `Authorization: Bearer <session.access_token>` to all HTTP requests sent to the Next.js `/api/v1/*` backend.

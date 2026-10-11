@@ -1,63 +1,67 @@
-# BrewPoints — Phase 4 Plan: Admin Dashboard (Next.js)
+# BrewPoints — Phase 4 Plan (Admin Web Dashboard & Staff Management)
 
-**Phase 4 goal:** Create a privileged web portal for the Owner to manage staff, configure the reward catalog, and monitor the health of the loyalty program via analytics.
-
----
-
-## 1. Architecture & Access Control
-
-- **Framework**: Next.js (deployed as a web app).
-- **Authentication**: Firebase Auth.
-- **Authorization**: Strict **Owner-Only** access.
-    - Middleware checks for the `role:owner` in the backend.
-    - Non-owners are redirected to a "Not Authorized" landing page.
-- **API Integration**: Consumes the `/api/v1` Laravel backend.
+**Phase 4 Goal:** Build the responsive web management portal for shop owners using Next.js 16 App Router, providing program health analytics, staff management, and reward catalog controls.
 
 ---
 
-## 2. Staff Management Module
+## 1. Stack & Architecture
 
-- **Objective**: Provide total control over the employees accessing the system.
-- **Features**:
-    - **Staff Directory**: A list of all users with the `Staff` role.
-    - **Account CRUD**: 
-        - **Create**: Add new staff via email.
-        - **Update**: Edit staff details.
-        - **Deactivate**: Soft-delete or disable staff accounts to revoke app access immediately.
-
----
-
-## 3. Reward Catalog Manager
-
-- **Objective**: Manage the "menu" of rewards available to customers.
-- **UI Pattern**: **Visual Card-based Manager**.
-    - Rewards are displayed as cards, mimicking how they appear in the mobile app.
-- **Features**:
-    - **Create/Edit**: Modal-based forms to set reward name, points cost, and `active` status.
-    - **Toggling**: Quick-switch for the `active` flag to pause/resume specific rewards.
-    - **Deletion**: Soft-delete functionality to remove rewards from the catalog.
+| Item | Choice |
+|---|---|
+| Framework | Next.js 16.x (App Router) with React 19 & TypeScript |
+| UI & Styling | Tailwind CSS v4 + `shadcn/ui` + Lucide React |
+| Data Visualizations | Recharts (AreaChart, BarChart, LineChart) |
+| Authentication | **Supabase Auth** (`@supabase/ssr` with httpOnly cookies) |
+| Database Queries | Server Components calling Supabase PostgreSQL directly or via `/api/v1/*` |
 
 ---
 
-## 4. Program Health Dashboard (Analytics)
+## 2. Web Application Routes
 
-- **Objective**: Provide a high-level view of program performance and fraud detection.
-- **Key Performance Indicators (KPIs)**:
-    - **Point Velocity**: A comparison of total points issued vs. total points redeemed (Liability Analysis).
-    - **Reward Popularity**: A ranked list/chart of the most claimed rewards.
-    - **Staff Activity**: A report showing total points allocated per staff member (Anomaly/Fraud Detection).
-    - **Growth Trend**: A time-series chart (daily/weekly) showing the volume of redemptions.
+```
+src/app/
+├── (auth)/
+│   └── login/page.tsx               # Role-based login portal
+├── dashboard/page.tsx               # Owner Program Health Analytics
+├── staff/page.tsx                   # Barista Staff Management CRUD
+├── rewards/page.tsx                 # Reward Catalog Manager
+├── pos/page.tsx                     # Web-based Staff POS & Scanner Portal
+├── wallet/page.tsx                  # Web Customer Loyalty Wallet Preview
+└── unauthorized/page.tsx            # 403 Forbidden screen
+```
 
 ---
 
-## 5. Implementation Order
+## 3. Key Portal Modules
 
-1. **Setup**: Next.js project initialization and Firebase Auth integration.
-2. **Owner Guard**: Implement the `role:owner` check and "Not Authorized" redirection.
-3. **Staff Module**: Build the Staff CRUD interface.
-4. **Reward Module**: Build the Visual Card-based reward manager.
-5. **Analytics Module**: Implement the KPI dashboard and data visualizations.
-6. **Verification**: 
-    - Verify that Staff/Customers cannot access the dashboard.
-    - Verify that reward changes in the dashboard reflect immediately in the mobile app.
-    - Verify that staff deactivation immediately blocks their mobile app access.
+### 3.1 Program Health Analytics (`/dashboard`)
+1. **Summary Cards**:
+   - Total Points Issued: Lifetime points awarded across all customer transactions.
+   - Points Redeemed: Lifetime points burned for rewards.
+   - Active Customers: Total non-deleted customers active in the program.
+   - Redemption Rate: Percentage of issued points that have been converted into rewards.
+2. **Interactive Visualizations**:
+   - **Point Velocity Chart** (Recharts `AreaChart`): Daily points issued vs. redeemed over the past 7 days.
+   - **Reward Popularity Chart** (Recharts `BarChart`): Top claimed rewards ranked by total redemption count.
+   - **Staff Activity Table**: Barista leaderboard displaying point allocation volume and redemptions verified per staff member.
+   - **Redemption Growth Chart** (Recharts `LineChart`): Cumulative redemption milestones over time.
+
+### 3.2 Staff Management (`/staff`)
+- **Directory Table**: Lists all barista staff members with contact info, status (`Active` / `Inactive`), and total processed transactions.
+- **Create Staff Dialog**: Form to register new barista staff (`name`, `email`, `phone`).
+- **Edit Staff Dialog**: Modify barista name, email, or contact details.
+- **Status Toggle & Deactivation**: Single-click activation/deactivation (`deleted_at = now()` soft-delete).
+
+### 3.3 Reward Catalog Manager (`/rewards`)
+- **Catalog Grid**: Visual cards for every reward with title, description, and required point threshold.
+- **Create Reward Dialog**: Set name, description, point cost (`1` to `10,000`), and initial active status.
+- **Edit Reward Dialog**: Modify point costs or item descriptions.
+- **Active Toggle**: Instantly activate or pause rewards from appearing in customer mobile apps.
+- **Soft-Delete**: Safely archive outdated rewards without breaking historic transaction audit trails.
+
+---
+
+## 4. Security & Role Guards
+
+- **Proxy Guard (`src/proxy.ts`)**: Next.js 16 route proxy intercepts `/dashboard`, `/staff`, and `/rewards`, verifying that the user has the `owner` role via encrypted session cookies. Non-owners are redirected to `/unauthorized`.
+- **Server-Side Data Fetching**: Sensitive financial and program metrics are aggregated inside Server Components using Supabase server clients with Service Role / RLS enforcement.
