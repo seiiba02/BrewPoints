@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>BrewPoints — Chromatic Coastline & Capsule Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=IBM+Plex+Mono:wght@600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 1440px; height: 900px; overflow: hidden;
+    background: #F5F1E4; color: #2C2E2A;
+    font-family: 'Space Grotesk', sans-serif;
+    display: grid; grid-template-columns: 260px 1fr 390px; gap: 18px; padding: 18px;
+  }
+  .lobe-green { background: #8ED462; border-radius: 36px; padding: 28px; display: flex; flex-direction: column; justify-content: space-between; }
+  .lobe-main { background: #FFFFFF; border-radius: 36px; padding: 28px; border: 2px solid #2C2E2A; display: flex; flex-direction: column; justify-content: space-between; }
+  .lobe-wallet { background: #2C2E2A; color: #F5F1E4; border-radius: 36px; padding: 28px; display: flex; flex-direction: column; justify-content: space-between; }
+  .capsule {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 18px; border-radius: 999px; font-weight: 700; font-size: 14px;
+    border: 2px solid #2C2E2A; background: #F5F1E4; color: #2C2E2A; margin-bottom: 10px;
+  }
+  .capsule.live { background: #F5E211; }
+  .capsule.coral { background: #FF705D; color: #2C2E2A; }
+  .chip { width: 14px; height: 14px; border-radius: 50%; background: #2C2E2A; display: inline-block; }
+  .display { font-size: 54px; line-height: 0.95; letter-spacing: -0.05em; font-weight: 700; }
+</style>
+</head>
+<body>
+  <aside class="lobe-green">
+    <div>
+      <div class="display" style="font-size:38px;margin-bottom:24px;">BrewPoints</div>
+      <div class="capsule live"><span class="chip"></span><span>Counter Gate POS</span></div>
+      <div class="capsule"><span>Owner Map & Stats</span><span class="chip"></span></div>
+      <div class="capsule"><span>Reward Zones</span><span class="chip"></span></div>
+      <div class="capsule"><span>Staff Baristas</span><span class="chip"></span></div>
+    </div>
+    <div style="background:#F5F1E4;border-radius:24px;padding:16px;font-size:13px;font-weight:700;">
+      RATE: $1.00 = 1 PT<br/>Live chip crosses to leading edge.
+    </div>
+  </aside>
+
+  <main class="lobe-main">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div class="display" style="font-size:40px;">Counter Zone · Maya Lin</div>
+      <div class="capsule live" style="margin:0;"><span class="chip"></span><span style="margin-left:8px;">SCAN: 3.8S</span></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+      <div style="background:#F5F1E4;border-radius:28px;padding:24px;">
+        <div style="font-size:13px;font-weight:700;">PURCHASE ALLOCATION</div>
+        <div class="display" style="margin:12px 0;">$18.50 → +19</div>
+        <div class="capsule coral" style="margin-top:16px;"><span class="chip"></span><span>STAMP +19 POINTS NOW</span></div>
+      </div>
+      <div style="background:#8ED462;border-radius:28px;padding:24px;">
+        <div style="font-size:13px;font-weight:700;">REWARD GATE READY</div>
+        <div class="display" style="font-size:36px;margin:12px 0;">Cortado (-100)</div>
+        <div class="capsule live" style="margin-top:16px;"><span class="chip"></span><span>CONFIRM REDEMPTION</span></div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;">
+      <div style="background:#F5E211;border-radius:24px;padding:18px;"><div style="font-size:12px;">ISSUED TODAY</div><div class="display" style="font-size:36px;">1,480</div></div>
+      <div style="background:#FF705D;border-radius:24px;padding:18px;"><div style="font-size:12px;">REDEEMED</div><div class="display" style="font-size:36px;">34</div></div>
+      <div style="background:#EBC1FF;border-radius:24px;padding:18px;"><div style="font-size:12px;">ACTIVE MEMBERS</div><div class="display" style="font-size:36px;">219</div></div>
+    </div>
+  </main>
+
+  <aside class="lobe-wallet">
+    <div style="font-size:12px;font-weight:700;color:#8ED462;">MOBILE LOBE · 390PX PASS</div>
+    <div style="background:#F5F1E4;color:#2C2E2A;border-radius:30px;padding:24px;text-align:center;">
+      <div class="display">164 PTS</div>
+      <div style="width:140px;height:140px;margin:16px auto;border-radius:24px;border:3px solid #2C2E2A;background:repeating-linear-gradient(45deg,#2C2E2A 0 8px,#8ED462 8px 16px);"></div>
+      <div class="capsule coral" style="margin:0;"><span class="chip"></span><span>REDEEM CORTADO PASS</span></div>
+    </div>
+    <div style="font-size:12px;color:#F5F1E4;">Flat unmodulated color zones · Capsule chip state</div>
+  </aside>
+</body>
+</html>

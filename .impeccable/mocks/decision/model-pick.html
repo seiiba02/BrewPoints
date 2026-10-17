@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>BrewPoints — Roastery Cupping & Lot Ledger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,600;6..72,700&family=JetBrains+Mono:wght@500;600&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 1440px; height: 900px; overflow: hidden;
+    background: #FAF7F2; color: #231F1D;
+    font-family: 'Work Sans', sans-serif;
+    display: flex; flex-direction: column;
+  }
+  .header {
+    background: #231F1D; color: #FAF7F2; padding: 18px 32px;
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 3px solid #B86B35;
+  }
+  .brand { font-family: 'Newsreader', serif; font-size: 26px; font-weight: 700; }
+  .tabs { display: flex; gap: 24px; font-size: 14px; font-weight: 600; }
+  .tab.active { color: #B86B35; border-bottom: 2px solid #B86B35; padding-bottom: 4px; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  .grid {
+    flex: 1; display: grid; grid-template-columns: 1.2fr 1fr 380px; gap: 24px; padding: 28px 32px;
+  }
+  .panel {
+    background: #FFFFFF; border: 1px solid #E6DEC8; border-radius: 6px; padding: 22px;
+    display: flex; flex-direction: column; gap: 16px;
+  }
+  .lot-tag {
+    display: inline-block; background: #EFECE4; color: #231F1D;
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 4px 8px; border-left: 3px solid #B86B35;
+  }
+  .h2 { font-family: 'Newsreader', serif; font-size: 24px; font-weight: 700; }
+  .kpi-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  .kpi { background: #FAF7F2; border: 1px solid #E6DEC8; padding: 14px; }
+  .kpi-num { font-family: 'Newsreader', serif; font-size: 32px; font-weight: 700; color: #B86B35; margin-top: 4px; }
+  .calc-box { background: #FAF7F2; border: 1.5px solid #231F1D; padding: 18px; }
+  .btn {
+    background: #B86B35; color: #FFFFFF; border: none; padding: 14px; font-weight: 700;
+    font-size: 14px; width: 100%; cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .table-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #E6DEC8; font-size: 13px; }
+</style>
+</head>
+<body>
+  <header class="header">
+    <div class="brand">BrewPoints Roastery & Lot Ledger</div>
+    <nav class="tabs">
+      <span class="tab active">01. Cupping & Counter POS</span>
+      <span class="tab">02. Origin Reward Lots</span>
+      <span class="tab">03. Roastery Analytics</span>
+      <span class="tab">04. Staff Baristas</span>
+    </nav>
+    <div class="mono" style="font-size:12px;color:#E6DEC8;">HARVEST LOT #2026-A · $1.00 = 1 PT</div>
+  </header>
+
+  <main class="grid">
+    <section class="panel">
+      <div><span class="lot-tag">LOT-POS-01 · COUNTER ALLOCATION</span></div>
+      <h2 class="h2">Barista Spend & Point Protocol</h2>
+      <div class="calc-box">
+        <div class="mono" style="font-size:12px;color:#6B625B;">SCANNED MEMBER: MAYA LIN (145 PTS)</div>
+        <div class="mono" style="font-size:28px;font-weight:600;margin:12px 0;">$18.50 USD → +19 PTS</div>
+        <button class="btn">Record Lot Spend & Issue +19 Points</button>
+      </div>
+      <h2 class="h2" style="margin-top:8px;">Recent Cupping & Loyalty Ledger</h2>
+      <div>
+        <div class="table-row"><span><strong>Maya Lin</strong> · Washed Ethiopia Pour-Over</span><span class="mono" style="color:#3B6E52;">+$18.50 / +19 pts</span></div>
+        <div class="table-row"><span><strong>Kenji Sato</strong> · Redeemed Lot #04 Cortado</span><span class="mono" style="color:#B86B35;">-100 pts</span></div>
+        <div class="table-row"><span><strong>Elena Rostova</strong> · Whole Bean 250g Bag</span><span class="mono" style="color:#3B6E52;">+$22.00 / +22 pts</span></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div><span class="lot-tag">ROASTERY METRICS · 7-DAY VELOCITY</span></div>
+      <h2 class="h2">House Loyalty Performance</h2>
+      <div class="kpi-row">
+        <div class="kpi">
+          <div style="font-size:12px;color:#6B625B;">ACTIVE POINT LIABILITY</div>
+          <div class="kpi-num">18,420</div>
+        </div>
+        <div class="kpi">
+          <div style="font-size:12px;color:#6B625B;">REDEMPTION RATE</div>
+          <div class="kpi-num" style="color:#3B6E52;">31.4%</div>
+        </div>
+      </div>
+      <div style="background:#FAF7F2;border:1px solid #E6DEC8;padding:16px;flex:1;">
+        <div class="mono" style="font-size:12px;font-weight:600;margin-bottom:10px;">REWARD CATALOG LOTS</div>
+        <div class="table-row"><span>LOT-01 · House Espresso Shot</span><span class="mono">60 PTS</span></div>
+        <div class="table-row"><span>LOT-02 · Single-Origin Cortado</span><span class="mono">100 PTS</span></div>
+        <div class="table-row"><span>LOT-03 · Geisha Hand Pour-Over</span><span class="mono">200 PTS</span></div>
+        <div class="table-row"><span>LOT-04 · 250g Roaster Reserve Bag</span><span class="mono">350 PTS</span></div>
+      </div>
+    </section>
+
+    <section class="panel" style="background:#231F1D;color:#FAF7F2;">
+      <div><span class="lot-tag" style="background:#352F2C;color:#FAF7F2;">MOBILE PASS · 390PX VIEWPORT</span></div>
+      <h2 class="h2" style="color:#FAF7F2;">Member Origin Card</h2>
+      <div style="background:#FAF7F2;color:#231F1D;padding:20px;border-radius:6px;flex:1;display:flex;flex-direction:column;justify-content:space-between;">
+        <div>
+          <div class="mono" style="font-size:11px;color:#B86B35;">MEMBER LOT #0194 · MAYA LIN</div>
+          <div style="font-family:'Newsreader',serif;font-size:40px;font-weight:700;margin:6px 0;">164 PTS</div>
+          <div style="font-size:13px;color:#6B625B;">36 points away from Lot #03 Hand Pour-Over</div>
+        </div>
+        <div style="border:2px solid #231F1D;padding:18px;text-align:center;margin:14px 0;">
+          <div class="mono" style="font-size:11px;">brewpoints://allocate?token=eyJ...</div>
+          <div style="width:120px;height:120px;margin:10px auto;background:repeating-linear-gradient(90deg,#231F1D 0 6px,#FAF7F2 6px 12px);"></div>
+          <div class="mono" style="font-size:11px;color:#3B6E52;">DYNAMIC JWS · 09:41 REMAINING</div>
+        </div>
+        <button class="btn" style="background:#3B6E52;">Redeem Available Lot Reward</button>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

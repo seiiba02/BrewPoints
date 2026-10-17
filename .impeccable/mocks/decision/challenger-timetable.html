@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>BrewPoints — Goldenrod Pocket Timetable</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@600;700&family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; font-size: 15px; line-height: 1.45; }
+  body {
+    width: 1440px; height: 900px; overflow: hidden;
+    background: #E5B84B; color: #18181B;
+    font-family: 'IBM Plex Mono', monospace;
+    padding: 24px; display: flex; flex-direction: column; gap: 16px;
+  }
+  .tick-rail {
+    background: #18181B; color: #FBF6E9; padding: 12px 20px;
+    display: flex; justify-content: space-between; text-transform: uppercase; font-weight: 700;
+  }
+  .rack {
+    flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px;
+  }
+  .slide {
+    background: #FBF6E9; border: 2px solid #18181B; padding: 20px;
+    display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .slide.reversed {
+    background: #18181B; color: #FBF6E9;
+  }
+  .head-rule {
+    border-bottom: 2px solid currentColor; padding-bottom: 10px; margin-bottom: 14px;
+    display: flex; justify-content: space-between; font-weight: 700; text-transform: uppercase;
+  }
+  .row {
+    display: flex; justify-content: space-between; padding: 10px 0;
+    border-bottom: 1px solid rgba(24,24,27,0.2);
+  }
+  .btn {
+    background: #C83E2B; color: #FBF6E9; border: 2px solid #18181B; padding: 12px;
+    font-weight: 700; text-transform: uppercase; text-align: center; width: 100%;
+  }
+  .btn.green { background: #1F5E3B; }
+</style>
+</head>
+<body>
+  <header class="tick-rail">
+    <span>BREWPOINTS TIMETABLE RACK · SINGLE-SIZE SPECIMEN (15PX)</span>
+    <span>[01 COUNTER SCAN] · [02 OWNER LEDGER] · [03 MOBILE PASS]</span>
+    <span>RATE: $1.00 = 1 PT</span>
+  </header>
+
+  <main class="rack">
+    <section class="slide reversed">
+      <div>
+        <div class="head-rule">
+          <span>SLIDE 01 · ACTIVE COUNTER SCAN</span>
+          <span style="color:#E5B84B;">[REVERSED PLATE]</span>
+        </div>
+        <div class="row" style="border-color:#3F3F46;"><span>MEMBER ID</span><span>CUS-0194 · MAYA LIN</span></div>
+        <div class="row" style="border-color:#3F3F46;"><span>CURRENT BALANCE</span><span>145 POINTS</span></div>
+        <div class="row" style="border-color:#3F3F46;"><span>PURCHASE ENTRY</span><span style="color:#E5B84B;font-weight:700;">$18.50 USD</span></div>
+        <div class="row" style="border-color:#3F3F46;"><span>CALCULATED AWARD</span><span style="color:#E5B84B;font-weight:700;">+19 POINTS (HALF-UP)</span></div>
+        <div class="row" style="border-color:#3F3F46;"><span>PENDING REDEMPTION</span><span>RWD-02 CORTADO (-100 PTS)</span></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="btn">STAMP ALLOCATION (+19 PTS)</div>
+        <div class="btn green">CONFIRM REDEMPTION (-100 PTS)</div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div>
+        <div class="head-rule">
+          <span>SLIDE 02 · HOUSE LEDGER & REWARDS</span>
+          <span>[OPAQUE IVORY]</span>
+        </div>
+        <div class="row"><span>POINTS ISSUED TODAY</span><strong>1,480 PTS (+18%)</strong></div>
+        <div class="row"><span>REDEMPTIONS CONFIRMED</span><strong>34 TICKETS</strong></div>
+        <div class="row"><span>ACTIVE MEMBERS</span><strong>219 ACCOUNTS</strong></div>
+        <div class="head-rule" style="margin-top:20px;">
+          <span>REWARD SCHEDULE</span><span>COST</span>
+        </div>
+        <div class="row"><span>● RWD-01 ESPRESSO SHOT</span><strong>60 PTS</strong></div>
+        <div class="row"><span>● RWD-02 CORTADO</span><strong>100 PTS</strong></div>
+        <div class="row"><span>○ RWD-03 GEISHA POUR-OVER</span><strong>200 PTS</strong></div>
+      </div>
+      <div style="border-top:2px solid #18181B;padding-top:10px;font-weight:700;">
+        ALL HIERARCHY BY WEIGHT, CASE, RULE & REVERSAL
+      </div>
+    </section>
+
+    <section class="slide">
+      <div>
+        <div class="head-rule">
+          <span>SLIDE 03 · MOBILE CUSTOMER PASS</span>
+          <span>[390PX VIEW]</span>
+        </div>
+        <div class="row"><span>HOLDER</span><strong>MAYA LIN</strong></div>
+        <div class="row"><span>AVAILABLE BALANCE</span><strong>164 POINTS</strong></div>
+        <div class="row"><span>TOKEN URI</span><span>brewpoints://allocate</span></div>
+        <div style="border:2px solid #18181B;padding:20px;margin:16px 0;text-align:center;background:#E5B84B;">
+          <div style="font-weight:700;">DYNAMIC JWS QR SLIDE</div>
+          <div style="width:130px;height:130px;margin:12px auto;border:2px solid #18181B;background:repeating-linear-gradient(0deg,#18181B 0 6px,#FBF6E9 6px 12px);"></div>
+          <div style="font-weight:700;color:#C83E2B;">TTL 09:42 · SINGLE USE</div>
+        </div>
+      </div>
+      <div class="btn green">GENERATE REDEMPTION QR</div>
+    </section>
+  </main>
+</body>
+</html>

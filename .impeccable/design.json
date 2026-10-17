@@ -1,0 +1,196 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-17T08:42:00Z",
+  "title": "Design System: BrewPoints",
+  "extensions": {
+    "colorMeta": {
+      "signal-crimson": {
+        "role": "primary",
+        "displayName": "Foundry Signal Crimson",
+        "canonical": "#E02E24",
+        "tonalRamp": [
+          "#3B0806",
+          "#5E0E0A",
+          "#871510",
+          "#B82219",
+          "#E02E24",
+          "#EF6B64",
+          "#F8B4B0",
+          "#FEF2F2"
+        ]
+      },
+      "verified-emerald": {
+        "role": "secondary",
+        "displayName": "Verified Emerald",
+        "canonical": "#15803D",
+        "tonalRamp": [
+          "#052E16",
+          "#0A4622",
+          "#116331",
+          "#15803D",
+          "#22A352",
+          "#55C57D",
+          "#A3E4BA",
+          "#DCFCE7"
+        ]
+      },
+      "foundry-paper": {
+        "role": "neutral",
+        "displayName": "Unbleached Foundry Paper",
+        "canonical": "#F8F6F0",
+        "tonalRamp": [
+          "#111110",
+          "#2C2B29",
+          "#4A4843",
+          "#6E6B64",
+          "#9C988E",
+          "#D4D0C5",
+          "#EFECE3",
+          "#F8F6F0"
+        ]
+      },
+      "carbon-ink": {
+        "role": "neutral",
+        "displayName": "Carbon Ink",
+        "canonical": "#111110",
+        "tonalRamp": [
+          "#111110",
+          "#1C1B19",
+          "#2C2B29",
+          "#3D3B37",
+          "#57554F",
+          "#7A776F",
+          "#ACA79B",
+          "#E5E2D9"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Variable Specimen Display (Fraunces)",
+        "purpose": "Live customer point balances, counter POS award readouts, and reward tier thresholds with dynamic 'wght' (320..900) and 'opsz' (24..144)."
+      },
+      "headline": {
+        "displayName": "Workspace Headline (Fraunces)",
+        "purpose": "Top-level route headings across POS, Wallet, Analytics, Rewards, and Staff."
+      },
+      "title": {
+        "displayName": "Pane Title (Fraunces)",
+        "purpose": "Work area titles, chart headers, and dialog titles."
+      },
+      "body": {
+        "displayName": "Operational Body (Plus Jakarta Sans)",
+        "purpose": "Instructions, descriptions, and form copy constrained to 70ch."
+      },
+      "label": {
+        "displayName": "Telemetry & Ledger Mono (JetBrains Mono)",
+        "purpose": "Tabular currency ($ USD), JWS URIs, TTL countdowns, serial catalog codes, and variable-font axis readouts."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "specimen-axis-interpolation",
+        "value": "font-variation-settings 180ms cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Smooth interpolation of Fraunces 'wght' and 'opsz' axes as point balances or USD spend values change (disabled under prefers-reduced-motion)."
+      }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1440px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Action Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "High-contrast crimson trigger for counter point allocation, QR generation, and catalog publishing.",
+      "html": "<button class=\"ds-btn-primary\">CONFIRM &amp; CREDIT +19 POINTS</button>",
+      "css": ".ds-btn-primary { background: #E02E24; color: #F8F6F0; padding: 14px 24px; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; border: none; border-radius: 0; cursor: pointer; transition: background-color 150ms ease; } .ds-btn-primary:hover { background: #B82219; } .ds-btn-primary:focus-visible { outline: 2px solid #E02E24; outline-offset: 2px; }"
+    },
+    {
+      "name": "Secondary Ruled Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "1px carbon-bordered secondary control for token rotation, clipboard copy, and table filters.",
+      "html": "<button class=\"ds-btn-secondary\">ROTATE JWS TOKEN</button>",
+      "css": ".ds-btn-secondary { background: #FFFFFF; color: #111110; padding: 10px 16px; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; border: 1px solid #111110; border-radius: 0; cursor: pointer; transition: background-color 150ms ease; } .ds-btn-secondary:hover { background: #EFECE3; } .ds-btn-secondary:focus-visible { outline: 2px solid #E02E24; outline-offset: 2px; }"
+    },
+    {
+      "name": "Counter Spend Input",
+      "kind": "input",
+      "refersTo": "input-spend",
+      "description": "2px carbon-framed tabular numeric input for barista USD spend entry.",
+      "html": "<input class=\"ds-input-spend\" type=\"number\" value=\"18.50\" aria-label=\"Purchase Total USD\" />",
+      "css": ".ds-input-spend { background: #F8F6F0; color: #111110; border: 2px solid #111110; border-radius: 0; padding: 10px 14px; font-family: 'JetBrains Mono', monospace; font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; caret-color: #E02E24; } .ds-input-spend:focus-visible { outline: 2px solid #E02E24; outline-offset: 2px; }"
+    },
+    {
+      "name": "Catalog Status & Serial Chip",
+      "kind": "chip",
+      "refersTo": "chip-serial",
+      "description": "Tabular monospace serial code and verification badge for rewards and transactions.",
+      "html": "<span class=\"ds-chip-verified\">RWD-01 · VERIFIED</span>",
+      "css": ".ds-chip-verified { display: inline-block; background: #DCFCE7; color: #15803D; border: 1px solid #15803D; padding: 3px 8px; font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }"
+    },
+    {
+      "name": "Kinetic Variable-Font Specimen Stage",
+      "kind": "custom",
+      "refersTo": "specimen-stage",
+      "description": "Signature variable-font numeral readout paired with live axis telemetry.",
+      "html": "<div class=\"ds-specimen-stage\"><div class=\"ds-specimen-num\">164<span class=\"ds-specimen-unit\">pts</span></div><div class=\"ds-specimen-meta\">AXIS: 'wght' 820 · 'opsz' 128 · $164.00 EQUIV</div></div>",
+      "css": ".ds-specimen-stage { background: #FFFFFF; border-top: 2px solid #111110; border-bottom: 2px solid #111110; padding: 20px; display: flex; justify-content: space-between; align-items: baseline; gap: 16px; } .ds-specimen-num { font-family: 'Fraunces', Georgia, serif; font-size: 64px; line-height: 0.9; font-variation-settings: 'wght' 820, 'opsz' 128; color: #111110; letter-spacing: -0.035em; } .ds-specimen-unit { font-size: 20px; color: #4A4843; margin-left: 6px; } .ds-specimen-meta { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #4A4843; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Kinetic Variable-Type Espresso Foundry",
+    "overview": "BrewPoints replaces generic SaaS loyalty cards with the tactile discipline of an interactive type foundry specimen (variable-font-specimen) tailored for a high-velocity specialty coffee bar. Set on unbleached foundry paper (#F8F6F0) and divided by architectural carbon-ink rules (#111110), the interface uses live variable typography (Fraunces axes 'wght' 320..900 and 'opsz' 24..144) to dramatize customer point balances and barista USD spend calculations in real time.\n\nEvery surface is engineered for operational clarity across both desktop (1440px Owner Telemetry & Counter POS) and mobile (390px Customer Loyalty Pass & Barista Scanner). When a barista enters $18.50 USD at the counter or a customer scrubs their loyalty tier axis, the giant display numerals physically thicken and expand in optical size while JetBrains Mono telemetry strips report the exact axis coordinates, conversion math ($1.00 = 1 PT, half-up rounding), and JWS anti-replay countdowns.",
+    "keyCharacteristics": [
+      "Live Variable-Font Numerals: Point balances, spend awards (+19 pts), and reward tier thresholds scale dynamically across 'wght' (320 to 900) and 'opsz' (24 to 144) via CSS custom properties.",
+      "Ruled Foundry Grid: Surfaces divide by 1px and 2px solid carbon-ink and warm stone rules rather than nested cards or soft drop shadows.",
+      "High-Contrast Counter Telemetry: JetBrains Mono (tabular-nums) handles all currency ($ USD), serial catalog codes (RWD-01, TX-0042, STF-01), JWS URIs, and live TTL timers.",
+      "Dual-Viewport Ergonomics: Top structural carbon-ink bar on desktop paired with a fixed bottom thumb-zone bar on mobile (390px)."
+    ],
+    "rules": [
+      {
+        "name": "The Action-Signal Rule",
+        "body": "Foundry Signal Crimson (#E02E24) and Verified Emerald (#15803D) appear only where an operator can act or where a ledger state has changed. Static chrome stays strictly Carbon Ink on Foundry Paper.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tinted-Secondary Rule",
+        "body": "Secondary text is always Warm Graphite (#4A4843) or Warm Stone (#D4D0C5 on dark carbon rails)—never neutral gray.",
+        "section": "colors"
+      },
+      {
+        "name": "The Live-Axis Specimen Rule",
+        "body": "Every primary point balance or spend calculation binds its CSS --specimen-wght (320..900) and --specimen-opsz (24..144) to the underlying numeric value via computeSpecimenAxes(), so the letterforms themselves communicate magnitude.",
+        "section": "typography"
+      },
+      {
+        "name": "The No-Kicker Rule",
+        "body": "Headings (h1, h2, h3) never wear an uppercase eyebrow or kicker above them. Metadata and serial codes sit beside the heading or in a ruled footer strip beneath the specimen.",
+        "section": "typography"
+      },
+      {
+        "name": "The Zero-Nested-Card Rule",
+        "body": "Containers never nest inside rounded cards. Multi-part sections divide a single bordered plane with hairline rules (divide-x, divide-y, border-b).",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do bind display numerals for point balances, spend awards, and reward costs to computeSpecimenAxes() (wght 320..900, opsz 24..144).",
+      "Do pair every headline KPI figure immediately with its underlying proof ($ USD verified spend, per-member average, or JWS verification protocol) in a ruled footer row.",
+      "Do use JetBrains Mono with tabular-nums for all dollar amounts ($18.50), point deltas (+19 PTS), serial codes (RWD-01, TX-0042), and countdown timers.",
+      "Do maintain at least 4.5:1 contrast on all body and secondary text using Warm Graphite (#4A4843) on light paper grounds."
+    ],
+    "donts": [
+      "Don't place kickers or eyebrow labels above h1, h2, or h3 headings.",
+      "Don't nest cards inside cards or use generic 3-up rounded icon-card grids.",
+      "Don't use colored border-left or border-right stripes thicker than 1px on callouts or list items.",
+      "Don't use hard zero-blur offset shadows (4px 4px 0) or decorative glassmorphism."
+    ]
+  }
+}

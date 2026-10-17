@@ -3,27 +3,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import {
-  Coffee,
-  Gift,
-  History,
-  QrCode,
   RefreshCw,
   Copy,
   Check,
-  Sparkles,
   ArrowUpRight,
   ArrowDownLeft,
 } from 'lucide-react';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import {
   Dialog,
   DialogContent,
@@ -32,6 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { computeSpecimenAxes } from '@/lib/design-tokens';
 
 interface BalanceData {
   current_points: number;
@@ -70,6 +56,13 @@ interface RedemptionModalData {
   current_balance: number;
 }
 
+function formatCountdown(expiresAtUnix: number, nowMs: number): string {
+  const remainingSec = Math.max(0, Math.floor(expiresAtUnix - nowMs / 1000));
+  const mins = Math.floor(remainingSec / 60);
+  const secs = remainingSec % 60;
+  return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+}
+
 export function CustomerWallet({ userName }: { userName: string }) {
   const [balance, setBalance] = useState<BalanceData>({
     current_points: 0,
@@ -94,6 +87,20 @@ export function CustomerWallet({ userName }: { userName: string }) {
   const [copiedRedeem, setCopiedRedeem] = useState(false);
   const [mintingRewardId, setMintingRewardId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Interactive variable-font axis preview offset (+0 to +200 simulated points)
+  const [simulatedBonusPts, setSimulatedBonusPts] = useState<number>(0);
+  const [mobileSection, setMobileSection] = useState<
+    'all' | 'pass' | 'rewards' | 'ledger'
+  >('all');
+  const [nowMs, setNowMs] = useState<number>(() => Date.now());
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setNowMs(Date.now());
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const fetchWalletData = useCallback(async (txPage = 1) => {
     setError(null);
@@ -120,7 +127,7 @@ export function CustomerWallet({ userName }: { userName: string }) {
         setTotalTx(txJson.meta?.total ?? 0);
       }
     } catch {
-      setError('Failed to load wallet data.');
+      setError('Unable to sync wallet balance. Check connection and retry.');
     }
   }, []);
 
@@ -137,7 +144,7 @@ export function CustomerWallet({ userName }: { userName: string }) {
         });
       }
     } catch {
-      // Ignore transient error
+      // Ignore transient refresh error
     }
   }, []);
 
@@ -146,26 +153,29 @@ export function CustomerWallet({ userName }: { userName: string }) {
     refreshAllocationQr();
   }, [fetchWalletData, refreshAllocationQr]);
 
-  // Dynamic milestone calculation: target the cheapest unaffordable active reward
   const sortedRewards = [...rewards].sort(
     (a, b) => a.points_required - b.points_required
   );
+  const effectivePoints = balance.current_points + simulatedBonusPts;
+  const maxCatalogPoints =
+    sortedRewards[sortedRewards.length - 1]?.points_required ?? 200;
+
   const nextMilestoneReward =
-    sortedRewards.find((r) => r.points_required > balance.current_points) ??
+    sortedRewards.find((r) => r.points_required > effectivePoints) ??
     sortedRewards[sortedRewards.length - 1] ??
     null;
 
   const progressPercent = nextMilestoneReward
     ? Math.min(
         100,
-        Math.round(
-          (balance.current_points / nextMilestoneReward.points_required) * 100
-        )
+        Math.round((effectivePoints / nextMilestoneReward.points_required) * 100)
       )
     : 100;
   const pointsRemaining = nextMilestoneReward
-    ? Math.max(0, nextMilestoneReward.points_required - balance.current_points)
+    ? Math.max(0, nextMilestoneReward.points_required - effectivePoints)
     : 0;
+
+  const specimen = computeSpecimenAxes(effectivePoints, maxCatalogPoints);
 
   const handleMintRedemption = async (rewardId: number) => {
     setMintingRewardId(rewardId);
@@ -206,381 +216,542 @@ export function CustomerWallet({ userName }: { userName: string }) {
 
   return (
     <div className="space-y-8">
+      {/* Header Row */}
+      <div className="flex flex-wrap items-end justify-between gap-4 border-b-2 border-[#111110] pb-5">
+        <div>
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-[#111110]">
+            {userName}&apos;s Loyalty Pass
+          </h1>
+          <p className="mt-1 text-sm text-[#4A4843]">
+            Present your dynamic QR pass at the espresso bar to earn 1 point per
+            $1.00 USD spent.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => fetchWalletData(page)}
+            className="inline-flex items-center gap-1.5 border border-[#111110] bg-[#FFFFFF] px-3.5 py-2 font-mono text-xs font-semibold uppercase text-[#111110] hover:bg-[#EFECE3] transition-colors cursor-pointer"
+          >
+            <RefreshCw className="h-3.5 w-3.5" />
+            <span>Sync Ledger</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Viewport Filter Strip */}
+      <div
+        role="tablist"
+        aria-label="Wallet Sections"
+        className="grid grid-cols-4 md:hidden border border-[#111110] bg-[#FFFFFF] font-mono text-xs"
+      >
+        {(
+          [
+            { id: 'all', label: 'All' },
+            { id: 'pass', label: 'QR Pass' },
+            { id: 'rewards', label: 'Rewards' },
+            { id: 'ledger', label: 'History' },
+          ] as const
+        ).map((tab) => (
+          <button
+            key={tab.id}
+            role="tab"
+            aria-selected={mobileSection === tab.id}
+            type="button"
+            onClick={() => setMobileSection(tab.id)}
+            className={`py-2.5 font-semibold uppercase transition-colors ${
+              mobileSection === tab.id
+                ? 'bg-[#111110] text-[#F8F6F0]'
+                : 'text-[#4A4843] hover:text-[#111110]'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
       {error && (
-        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-          {error}
+        <div
+          role="alert"
+          className="border border-[#B91C1C] bg-[#FEF2F2] p-4 font-mono text-xs text-[#B91C1C]"
+        >
+          ERROR: {error}
         </div>
       )}
 
-      {/* Top Row: Loyalty Card + Dynamic Allocation QR */}
-      <div className="grid gap-6 lg:grid-cols-5">
-        <Card className="lg:col-span-3 bg-gradient-to-br from-amber-900 via-amber-800 to-stone-900 text-amber-50 border-0 shadow-xl">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardDescription className="text-amber-200/80 uppercase tracking-wider text-xs font-semibold">
-                BrewPoints Digital Loyalty Card
-              </CardDescription>
-              <CardTitle className="text-2xl mt-1 text-white">
-                {userName}
-              </CardTitle>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => fetchWalletData(page)}
-              >
-                <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
-                Sync
-              </Button>
-            </div>
-          </CardHeader>
+      {/* Primary First-Viewport Grid: Variable Balance Specimen + Dynamic Allocation QR */}
+      {(mobileSection === 'all' || mobileSection === 'pass') && (
+        <section className="grid grid-cols-1 lg:grid-cols-12 border-2 border-[#111110] bg-[#FFFFFF]">
+          {/* Left 7 Columns: Kinetic Variable-Type Balance Specimen */}
+          <div className="lg:col-span-7 p-6 md:p-8 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-[#111110]">
+            <div className="space-y-6">
+              <div className="flex flex-wrap items-baseline justify-between gap-4 border-b border-[#D4D0C5] pb-6">
+                <div>
+                  <div
+                    className="font-specimen text-6xl sm:text-7xl md:text-[84px] leading-none text-[#111110]"
+                    style={{
+                      ['--specimen-wght' as string]: specimen.wght,
+                      ['--specimen-opsz' as string]: specimen.opsz,
+                    }}
+                  >
+                    {effectivePoints.toLocaleString()}
+                    <span className="ml-2 text-2xl md:text-3xl font-normal tracking-normal text-[#4A4843]">
+                      pts
+                    </span>
+                  </div>
+                  {simulatedBonusPts > 0 && (
+                    <p className="mt-2 font-mono text-xs text-[#E02E24]">
+                      PREVIEWING +{simulatedBonusPts} PTS (+$
+                      {simulatedBonusPts.toFixed(2)} SIMULATED SPEND) · ACTUAL
+                      BALANCE: {balance.current_points} PTS
+                    </p>
+                  )}
+                </div>
 
-          <CardContent className="space-y-6">
-            <div>
-              <p className="text-xs uppercase tracking-wider text-amber-200/80">
-                Available Balance
-              </p>
-              <div className="flex items-baseline gap-2 mt-1">
-                <span className="text-5xl font-extrabold tracking-tight text-white">
-                  {balance.current_points.toLocaleString()}
-                </span>
-                <span className="text-lg font-medium text-amber-200">
-                  points
-                </span>
+                <div className="font-mono text-xs text-[#4A4843] text-left sm:text-right space-y-1 tabular-nums">
+                  <div className="text-[#111110] font-semibold">
+                    SPECIMEN AXIS TELEMETRY
+                  </div>
+                  <div>
+                    &apos;wght&apos; {specimen.wght} · &apos;opsz&apos;{' '}
+                    {specimen.opsz}
+                  </div>
+                  <div>SCALE: {specimen.ratio}% OF CATALOG MAX</div>
+                </div>
+              </div>
+
+              {/* Milestone Progress Bar */}
+              {nextMilestoneReward && (
+                <div className="space-y-2.5 bg-[#F8F6F0] p-4 border border-[#D4D0C5]">
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+                    <span className="font-semibold text-[#111110]">
+                      {pointsRemaining > 0
+                        ? `Target Tier: ${nextMilestoneReward.name}`
+                        : `Unlocked: ${nextMilestoneReward.name}`}
+                    </span>
+                    <span className="font-mono text-xs font-semibold text-[#111110] tabular-nums">
+                      {effectivePoints} / {nextMilestoneReward.points_required}{' '}
+                      PTS ({progressPercent}%)
+                    </span>
+                  </div>
+                  <div className="h-2.5 w-full bg-[#D4D0C5]">
+                    <div
+                      className="h-full bg-[#E02E24] transition-all duration-300"
+                      style={{ width: `${progressPercent}%` }}
+                    />
+                  </div>
+                  <p className="font-mono text-xs text-[#4A4843]">
+                    {pointsRemaining > 0
+                      ? `${pointsRemaining} MORE POINTS ($${pointsRemaining.toFixed(
+                          2
+                        )} SPEND) TO UNLOCK THIS REWARD`
+                      : 'ALL CATALOG TIERS UNLOCKED AT THIS BALANCE'}
+                  </p>
+                </div>
+              )}
+
+              {/* Interactive Foundry Axis Simulator */}
+              <div className="space-y-2 pt-2">
+                <div className="flex items-center justify-between font-mono text-xs text-[#4A4843]">
+                  <label htmlFor="wallet-axis-slider">
+                    SIMULATE FUTURE SPEND AXIS (+$0 TO +$200 USD)
+                  </label>
+                  {simulatedBonusPts > 0 ? (
+                    <button
+                      type="button"
+                      onClick={() => setSimulatedBonusPts(0)}
+                      className="text-[#E02E24] underline cursor-pointer font-semibold"
+                    >
+                      RESET TO LIVE ({balance.current_points} PTS)
+                    </button>
+                  ) : (
+                    <span>LIVE BALANCE LOCKED</span>
+                  )}
+                </div>
+                <input
+                  id="wallet-axis-slider"
+                  type="range"
+                  min={0}
+                  max={200}
+                  step={5}
+                  value={simulatedBonusPts}
+                  onChange={(e) => setSimulatedBonusPts(Number(e.target.value))}
+                  className="foundry-slider"
+                />
               </div>
             </div>
 
-            {nextMilestoneReward && (
-              <div className="space-y-2 rounded-lg bg-black/25 p-4">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="flex items-center gap-1.5 font-medium text-amber-100">
-                    <Sparkles className="h-4 w-4 text-amber-300" />
-                    {pointsRemaining > 0
-                      ? `Next Milestone: ${nextMilestoneReward.name}`
-                      : `All Rewards Unlocked! (${nextMilestoneReward.name})`}
-                  </span>
-                  <span className="text-xs font-semibold text-amber-200">
-                    {balance.current_points} /{' '}
-                    {nextMilestoneReward.points_required} pts ({progressPercent}%)
-                  </span>
+            {/* Lifetime Ledger Summary Strip */}
+            <div className="mt-8 grid grid-cols-3 border-t border-[#111110] pt-4 font-mono text-xs tabular-nums">
+              <div className="pr-3 border-r border-[#D4D0C5]">
+                <div className="text-[#4A4843]">LIFETIME EARNED</div>
+                <div className="mt-1 text-base font-bold text-[#111110]">
+                  {balance.total_points_earned.toLocaleString()} pts
                 </div>
-                <div className="h-2.5 w-full overflow-hidden rounded-full bg-white/15">
-                  <div
-                    className="h-full rounded-full bg-amber-400 transition-all duration-500"
-                    style={{ width: `${progressPercent}%` }}
+              </div>
+              <div className="px-3 border-r border-[#D4D0C5]">
+                <div className="text-[#4A4843]">LIFETIME REDEEMED</div>
+                <div className="mt-1 text-base font-bold text-[#111110]">
+                  {balance.total_points_redeemed.toLocaleString()} pts
+                </div>
+              </div>
+              <div className="pl-3">
+                <div className="text-[#4A4843]">REWARDS CLAIMED</div>
+                <div className="mt-1 text-base font-bold text-[#15803D]">
+                  {totalRedemptionsCount}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right 5 Columns: Dynamic 10-Minute Allocation QR Well */}
+          <div className="lg:col-span-5 p-6 md:p-8 bg-[#EFECE3] flex flex-col justify-between">
+            <div className="flex items-start justify-between gap-2 border-b border-[#111110] pb-4">
+              <div>
+                <h2 className="text-xl font-bold text-[#111110]">
+                  Counter Allocation QR Pass
+                </h2>
+                <p className="text-xs text-[#4A4843] mt-0.5">
+                  Barista scans at checkout · Auto-rotates every 10 minutes
+                </p>
+              </div>
+              {allocationQr && (
+                <span className="shrink-0 bg-[#111110] px-2.5 py-1 font-mono text-xs font-semibold text-[#F8F6F0] tabular-nums">
+                  TTL {formatCountdown(allocationQr.expires_at, nowMs)}
+                </span>
+              )}
+            </div>
+
+            <div className="my-6 flex flex-col items-center justify-center">
+              {allocationQr ? (
+                <div className="border-2 border-[#111110] bg-[#FFFFFF] p-4">
+                  <QRCodeSVG
+                    value={allocationQr.qr_payload}
+                    size={176}
+                    bgColor="#FFFFFF"
+                    fgColor="#111110"
                   />
                 </div>
-                <p className="text-xs text-amber-200/90">
-                  {pointsRemaining > 0
-                    ? `${pointsRemaining} more points needed to unlock ${nextMilestoneReward.name}.`
-                    : 'You have enough points to redeem any reward in the catalog!'}
-                </p>
-              </div>
-            )}
-
-            <div className="grid grid-cols-3 gap-4 pt-2 border-t border-white/10 text-sm">
-              <div>
-                <p className="text-amber-200/70 text-xs">Lifetime Earned</p>
-                <p className="font-bold text-lg text-white">
-                  {balance.total_points_earned.toLocaleString()} pts
-                </p>
-              </div>
-              <div>
-                <p className="text-amber-200/70 text-xs">Lifetime Redeemed</p>
-                <p className="font-bold text-lg text-white">
-                  {balance.total_points_redeemed.toLocaleString()} pts
-                </p>
-              </div>
-              <div>
-                <p className="text-amber-200/70 text-xs">Rewards Claimed</p>
-                <p className="font-bold text-lg text-white">
-                  {totalRedemptionsCount}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Dynamic Customer Allocation QR Card */}
-        <Card className="lg:col-span-2 flex flex-col justify-between">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <QrCode className="h-5 w-5 text-amber-700" />
-                Earn Points QR
-              </CardTitle>
-              <Badge variant="outline">10m Dynamic JWS</Badge>
-            </div>
-            <CardDescription>
-              Show this QR code to the barista at checkout to earn 1 point per
-              $1.00 spent.
-            </CardDescription>
-          </CardHeader>
-
-          <CardContent className="flex flex-col items-center justify-center space-y-3 py-2">
-            {allocationQr ? (
-              <>
-                <div className="rounded-xl border bg-white p-4 shadow-sm">
-                  <QRCodeSVG value={allocationQr.qr_payload} size={168} />
+              ) : (
+                <div className="flex h-48 w-48 items-center justify-center border-2 border-dashed border-[#111110] bg-[#FFFFFF] font-mono text-xs text-[#4A4843]">
+                  MINTING JWS PASS...
                 </div>
-                <p className="text-xs text-muted-foreground text-center">
-                  Valid until{' '}
-                  {new Date(allocationQr.expires_at * 1000).toLocaleTimeString()}
-                </p>
-              </>
-            ) : (
-              <div className="h-44 flex items-center justify-center text-sm text-muted-foreground">
-                Generating dynamic QR...
-              </div>
-            )}
-          </CardContent>
+              )}
+              <p className="mt-3 font-mono text-[11px] text-[#4A4843] text-center break-all max-w-xs">
+                {allocationQr
+                  ? `${allocationQr.qr_payload.slice(0, 42)}...`
+                  : 'brewpoints://allocate?token=...'}
+              </p>
+            </div>
 
-          <CardFooter className="flex gap-2 justify-center border-t pt-4">
-            <Button variant="outline" size="sm" onClick={refreshAllocationQr}>
-              <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
-              Refresh QR
-            </Button>
-            {allocationQr && (
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => copyText(allocationQr.qr_payload, 'alloc')}
+            <div className="grid grid-cols-2 gap-2.5 pt-2 border-t border-[#D4D0C5]">
+              <button
+                type="button"
+                onClick={refreshAllocationQr}
+                className="flex items-center justify-center gap-1.5 border border-[#111110] bg-[#FFFFFF] py-2.5 px-3 font-mono text-xs font-semibold uppercase text-[#111110] hover:bg-[#F8F6F0] transition-colors cursor-pointer"
               >
-                {copiedAlloc ? (
-                  <>
-                    <Check className="mr-1.5 h-3.5 w-3.5 text-green-600" />
-                    Copied Payload
-                  </>
-                ) : (
-                  <>
-                    <Copy className="mr-1.5 h-3.5 w-3.5" />
-                    Copy QR Payload
-                  </>
-                )}
-              </Button>
-            )}
-          </CardFooter>
-        </Card>
-      </div>
-
-      {/* Rewards Catalog */}
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-              <Gift className="h-6 w-6 text-amber-700" />
-              Available Rewards
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              Redeem your points for handcrafted drinks and pastries. Points are
-              only deducted once staff scans your QR code.
-            </p>
+                <RefreshCw className="h-3.5 w-3.5" />
+                <span>Rotate Token</span>
+              </button>
+              {allocationQr && (
+                <button
+                  type="button"
+                  onClick={() => copyText(allocationQr.qr_payload, 'alloc')}
+                  className="flex items-center justify-center gap-1.5 bg-[#111110] py-2.5 px-3 font-mono text-xs font-semibold uppercase text-[#F8F6F0] hover:bg-[#E02E24] transition-colors cursor-pointer"
+                >
+                  {copiedAlloc ? (
+                    <>
+                      <Check className="h-3.5 w-3.5" />
+                      <span>Copied URI</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-3.5 w-3.5" />
+                      <span>Copy QR URI</span>
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
           </div>
-        </div>
+        </section>
+      )}
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {sortedRewards.map((reward) => {
-            const canAfford = balance.current_points >= reward.points_required;
-            return (
-              <Card
-                key={reward.id}
-                className="flex flex-col justify-between transition-shadow hover:shadow-md"
-              >
-                <CardHeader>
-                  <div className="flex items-start justify-between gap-2">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Coffee className="h-4 w-4 text-amber-700 shrink-0" />
-                      {reward.name}
-                    </CardTitle>
-                    <Badge variant={canAfford ? 'default' : 'secondary'}>
-                      {reward.points_required} pts
-                    </Badge>
-                  </div>
-                  <CardDescription>
-                    {reward.description || 'Redeemable in-store at the counter.'}
-                  </CardDescription>
-                </CardHeader>
-                <CardFooter className="border-t pt-4">
-                  <Button
-                    className="w-full"
-                    disabled={!canAfford || mintingRewardId === reward.id}
-                    onClick={() => handleMintRedemption(reward.id)}
-                  >
-                    {mintingRewardId === reward.id
-                      ? 'Generating QR...'
-                      : canAfford
-                      ? 'Redeem Reward'
-                      : `Need ${
-                          reward.points_required - balance.current_points
-                        } more pts`}
-                  </Button>
-                </CardFooter>
-              </Card>
-            );
-          })}
-        </div>
-      </section>
+      {/* Available Rewards Specimen Catalog */}
+      {(mobileSection === 'all' || mobileSection === 'rewards') && (
+        <section className="space-y-4">
+          <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[#111110] pb-3">
+            <div>
+              <h2 className="text-2xl font-bold text-[#111110]">
+                Reward Specimen Catalog
+              </h2>
+              <p className="text-sm text-[#4A4843]">
+                Points are deducted only after the barista scans and confirms
+                your 15-minute redemption QR.
+              </p>
+            </div>
+            <span className="font-mono text-xs text-[#4A4843] tabular-nums">
+              {sortedRewards.filter((r) => balance.current_points >= r.points_required).length}{' '}
+              OF {sortedRewards.length} UNLOCKED
+            </span>
+          </div>
 
-      {/* Transaction History */}
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-            <History className="h-6 w-6 text-amber-700" />
-            Transaction History ({totalTx})
-          </h2>
-        </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 border-t border-l border-[#111110] bg-[#FFFFFF]">
+            {sortedRewards.map((reward, idx) => {
+              const canAfford = balance.current_points >= reward.points_required;
+              const rewardAxis = computeSpecimenAxes(
+                reward.points_required,
+                maxCatalogPoints
+              );
+              const catalogCode = `RWD-${String(idx + 1).padStart(2, '0')}`;
 
-        <Card>
-          <CardContent className="divide-y p-0">
-            {transactions.length === 0 ? (
-              <div className="py-12 text-center text-sm text-muted-foreground">
-                No loyalty transactions yet. Scan your Earn Points QR at the
-                counter to start earning!
-              </div>
-            ) : (
-              transactions.map((tx) => {
-                const isEarn = tx.type === 'earn';
-                return (
-                  <div
-                    key={tx.id}
-                    className="flex items-center justify-between p-4"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={`flex h-9 w-9 items-center justify-center rounded-full ${
-                          isEarn
-                            ? 'bg-green-100 text-green-700'
-                            : 'bg-amber-100 text-amber-800'
+              return (
+                <div
+                  key={reward.id}
+                  className="flex flex-col justify-between border-r border-b border-[#111110] p-6"
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <h3 className="text-xl font-bold text-[#111110]">
+                        {reward.name}
+                      </h3>
+                      <span
+                        className={`shrink-0 px-2 py-0.5 font-mono text-xs font-semibold ${
+                          canAfford
+                            ? 'bg-[#DCFCE7] text-[#15803D] border border-[#15803D]'
+                            : 'bg-[#EFECE3] text-[#4A4843] border border-[#D4D0C5]'
                         }`}
                       >
-                        {isEarn ? (
-                          <ArrowDownLeft className="h-4 w-4" />
-                        ) : (
-                          <ArrowUpRight className="h-4 w-4" />
-                        )}
-                      </div>
-                      <div>
-                        <p className="font-medium text-sm">
-                          {isEarn
-                            ? `Purchase Point Allocation${
-                                tx.amount ? ` ($${tx.amount})` : ''
-                              }`
-                            : `Reward Redeemed: ${
-                                tx.reward?.name ?? 'Catalog Reward'
-                              }`}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {new Date(tx.created_at).toLocaleString()}
-                          {tx.staff ? ` • Verified by ${tx.staff.name}` : ''}
-                        </p>
-                      </div>
+                        {catalogCode}
+                      </span>
                     </div>
 
-                    <div
-                      className={`text-sm font-bold ${
-                        isEarn ? 'text-green-600' : 'text-amber-700'
+                    <p className="text-sm text-[#4A4843]">
+                      {reward.description ||
+                        'Handcrafted specialty house beverage or roastery item.'}
+                    </p>
+                  </div>
+
+                  <div className="mt-6 pt-4 border-t border-[#D4D0C5] space-y-4">
+                    <div className="flex items-baseline justify-between">
+                      <span
+                        className="font-specimen text-3xl text-[#111110]"
+                        style={{
+                          ['--specimen-wght' as string]: rewardAxis.wght,
+                          ['--specimen-opsz' as string]: rewardAxis.opsz,
+                        }}
+                      >
+                        {reward.points_required.toLocaleString()}{' '}
+                        <span className="text-sm font-normal text-[#4A4843]">
+                          pts
+                        </span>
+                      </span>
+                      <span className="font-mono text-[11px] text-[#4A4843] tabular-nums">
+                        ${reward.points_required.toFixed(2)} SPEND EQUIV
+                      </span>
+                    </div>
+
+                    <button
+                      type="button"
+                      disabled={!canAfford || mintingRewardId === reward.id}
+                      onClick={() => handleMintRedemption(reward.id)}
+                      className={`w-full py-3 px-4 font-mono text-xs font-semibold uppercase tracking-wider transition-colors cursor-pointer ${
+                        canAfford
+                          ? 'bg-[#E02E24] text-[#F8F6F0] hover:bg-[#B82219]'
+                          : 'bg-[#EFECE3] text-[#4A4843] border border-[#D4D0C5] cursor-not-allowed'
                       }`}
                     >
-                      {isEarn ? '+' : '-'}
-                      {tx.points} pts
-                    </div>
+                      {mintingRewardId === reward.id
+                        ? 'MINTING REDEMPTION QR...'
+                        : canAfford
+                        ? 'Generate Redemption QR'
+                        : `Need ${
+                            reward.points_required - balance.current_points
+                          } More Pts`}
+                    </button>
                   </div>
-                );
-              })
-            )}
-          </CardContent>
-          {lastPage > 1 && (
-            <CardFooter className="flex items-center justify-between border-t py-3">
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={page <= 1}
-                onClick={() => fetchWalletData(page - 1)}
-              >
-                Previous
-              </Button>
-              <span className="text-xs text-muted-foreground">
-                Page {page} of {lastPage}
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={page >= lastPage}
-                onClick={() => fetchWalletData(page + 1)}
-              >
-                Next
-              </Button>
-            </CardFooter>
-          )}
-        </Card>
-      </section>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
-      {/* Redemption QR Dialog */}
+      {/* Transaction History Ledger */}
+      {(mobileSection === 'all' || mobileSection === 'ledger') && (
+        <section className="space-y-4">
+          <div className="flex items-baseline justify-between border-b border-[#111110] pb-3">
+            <h2 className="text-2xl font-bold text-[#111110]">
+              Account Transaction Ledger
+            </h2>
+            <span className="font-mono text-xs text-[#4A4843] tabular-nums">
+              TOTAL RECORDS: {totalTx}
+            </span>
+          </div>
+
+          <div className="border-2 border-[#111110] bg-[#FFFFFF]">
+            {transactions.length === 0 ? (
+              <div className="p-10 text-center font-mono text-xs text-[#4A4843]">
+                NO TRANSACTIONS RECORDED YET. PRESENT YOUR QR PASS AT THE
+                COUNTER TO EARN POINTS.
+              </div>
+            ) : (
+              <div className="divide-y divide-[#D4D0C5]">
+                {transactions.map((tx) => {
+                  const isEarn = tx.type === 'earn';
+                  const serialCode = `TX-${String(tx.id).padStart(4, '0')}`;
+                  return (
+                    <div
+                      key={tx.id}
+                      className="flex flex-wrap items-center justify-between gap-4 p-4 md:px-6 hover:bg-[#F8F6F0] transition-colors"
+                    >
+                      <div className="flex items-start gap-3.5">
+                        <span
+                          className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center border ${
+                            isEarn
+                              ? 'border-[#15803D] bg-[#DCFCE7] text-[#15803D]'
+                              : 'border-[#E02E24] bg-[#FEF2F2] text-[#E02E24]'
+                          }`}
+                        >
+                          {isEarn ? (
+                            <ArrowDownLeft className="h-4 w-4" />
+                          ) : (
+                            <ArrowUpRight className="h-4 w-4" />
+                          )}
+                        </span>
+                        <div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="font-mono text-xs font-semibold text-[#4A4843]">
+                              {serialCode}
+                            </span>
+                            <span className="font-semibold text-sm text-[#111110]">
+                              {isEarn
+                                ? `Purchase Point Allocation${
+                                    tx.amount ? ` ($${tx.amount} USD)` : ''
+                                  }`
+                                : `Reward Redeemed: ${
+                                    tx.reward?.name ?? 'Catalog Item'
+                                  }`}
+                            </span>
+                          </div>
+                          <p className="mt-0.5 font-mono text-xs text-[#4A4843] tabular-nums">
+                            {new Date(tx.created_at).toLocaleString()}
+                            {tx.staff
+                              ? ` · BARISTA: ${tx.staff.name.toUpperCase()}`
+                              : ''}
+                            {tx.note ? ` · "${tx.note}"` : ''}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div
+                        className={`font-mono text-base font-bold tabular-nums ${
+                          isEarn ? 'text-[#15803D]' : 'text-[#E02E24]'
+                        }`}
+                      >
+                        {isEarn ? '+' : '-'}
+                        {tx.points} PTS
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {lastPage > 1 && (
+              <div className="flex items-center justify-between border-t border-[#111110] bg-[#EFECE3] px-4 py-3 font-mono text-xs">
+                <button
+                  type="button"
+                  disabled={page <= 1}
+                  onClick={() => fetchWalletData(page - 1)}
+                  className="border border-[#111110] bg-[#FFFFFF] px-3 py-1.5 font-semibold uppercase disabled:opacity-40 cursor-pointer"
+                >
+                  Previous
+                </button>
+                <span className="text-[#111110] tabular-nums">
+                  PAGE {page} OF {lastPage}
+                </span>
+                <button
+                  type="button"
+                  disabled={page >= lastPage}
+                  onClick={() => fetchWalletData(page + 1)}
+                  className="border border-[#111110] bg-[#FFFFFF] px-3 py-1.5 font-semibold uppercase disabled:opacity-40 cursor-pointer"
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* Single-Use Redemption QR Modal */}
       <Dialog
         open={Boolean(redemptionModal)}
         onOpenChange={(open) => {
           if (!open) setRedemptionModal(null);
         }}
       >
-        <DialogContent>
+        <DialogContent className="border-2 border-[#111110] bg-[#F8F6F0] text-[#111110] rounded-none sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-2xl font-bold text-[#111110]">
               Redeem: {redemptionModal?.reward.name}
             </DialogTitle>
-            <DialogDescription>
-              Present this dynamic QR code to the barista.{' '}
-              <strong>
+            <DialogDescription className="text-sm text-[#4A4843]">
+              Present this single-use QR pass to the barista.{' '}
+              <strong className="text-[#111110]">
                 {redemptionModal?.reward.points_required} points
               </strong>{' '}
-              will only be deducted once the barista scans and confirms it.
+              are deducted only upon barista scan confirmation.
             </DialogDescription>
           </DialogHeader>
 
           {redemptionModal && (
-            <div className="flex flex-col items-center space-y-4 py-4">
-              <div className="rounded-xl border bg-white p-4 shadow-sm">
-                <QRCodeSVG value={redemptionModal.qr_payload} size={200} />
+            <div className="flex flex-col items-center space-y-4 py-4 border-y border-[#111110] bg-[#FFFFFF]">
+              <div className="border-2 border-[#111110] bg-[#FFFFFF] p-4">
+                <QRCodeSVG
+                  value={redemptionModal.qr_payload}
+                  size={196}
+                  bgColor="#FFFFFF"
+                  fgColor="#111110"
+                />
               </div>
-              <p className="text-xs text-muted-foreground">
-                Expires at{' '}
-                {new Date(
-                  redemptionModal.expires_at * 1000
-                ).toLocaleTimeString()}{' '}
-                (Single-use JWS anti-replay protected)
-              </p>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() =>
-                  copyText(redemptionModal.qr_payload, 'redeem')
-                }
+              <div className="font-mono text-xs text-[#E02E24] font-semibold tabular-nums">
+                SINGLE-USE JWS · EXPIRES IN{' '}
+                {formatCountdown(redemptionModal.expires_at, nowMs)}
+              </div>
+              <button
+                type="button"
+                onClick={() => copyText(redemptionModal.qr_payload, 'redeem')}
+                className="inline-flex items-center gap-2 bg-[#111110] px-4 py-2.5 font-mono text-xs font-semibold uppercase text-[#F8F6F0] hover:bg-[#E02E24] transition-colors cursor-pointer"
               >
                 {copiedRedeem ? (
                   <>
-                    <Check className="mr-1.5 h-4 w-4 text-green-600" />
-                    Copied QR Payload for Staff POS
+                    <Check className="h-4 w-4" />
+                    <span>Copied Payload for Counter POS</span>
                   </>
                 ) : (
                   <>
-                    <Copy className="mr-1.5 h-4 w-4" />
-                    Copy QR Payload (for Staff POS testing)
+                    <Copy className="h-4 w-4" />
+                    <span>Copy QR URI (for POS Testing)</span>
                   </>
                 )}
-              </Button>
+              </button>
             </div>
           )}
 
           <DialogFooter>
-            <Button
-              variant="outline"
+            <button
+              type="button"
               onClick={() => {
                 setRedemptionModal(null);
                 fetchWalletData(page);
               }}
+              className="w-full sm:w-auto border border-[#111110] bg-[#FFFFFF] px-5 py-2.5 font-mono text-xs font-semibold uppercase text-[#111110] hover:bg-[#EFECE3] cursor-pointer"
             >
-              Done
-            </Button>
+              Close Pass
+            </button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -1,39 +1,43 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+/**
+ * BrewFlow Route Guard & Demo Dispatcher
+ * Allows zero-config exploration of Customer Ordering, Barista Queue, and Owner Dashboard for portfolio evaluators.
+ */
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const authUserCookie = request.cookies.get('auth_user')?.value;
 
-  const isOwnerRoute =
-    pathname.startsWith('/dashboard') ||
-    pathname.startsWith('/staff') ||
-    pathname.startsWith('/rewards');
-  const isStaffRoute = pathname.startsWith('/pos');
-  const isCustomerRoute = pathname.startsWith('/wallet');
+  // In demo portfolio mode, all primary surfaces are directly accessible.
+  // We attach a simulated role cookie if none is present so downstream components work seamlessly.
+  const response = NextResponse.next();
 
   if (!authUserCookie) {
-    if (isOwnerRoute || isStaffRoute || isCustomerRoute) {
-      return NextResponse.redirect(new URL('/login', request.url));
+    let demoRole = 'customer';
+    let demoName = 'Demo Visitor';
+
+    if (pathname.startsWith('/dashboard') || pathname.startsWith('/rewards') || pathname.startsWith('/staff')) {
+      demoRole = 'owner';
+      demoName = 'Eleanor Roaster (Owner)';
+    } else if (pathname.startsWith('/queue') || pathname.startsWith('/pos')) {
+      demoRole = 'staff';
+      demoName = 'Chloe Barista';
     }
-    return NextResponse.next();
+
+    response.cookies.set(
+      'auth_user',
+      JSON.stringify({
+        id: `demo-${demoRole}`,
+        email: `${demoRole}@brewflow.internal`,
+        name: demoName,
+        role: demoRole,
+      }),
+      { path: '/', maxAge: 60 * 60 * 24 * 7 }
+    );
   }
 
-  try {
-    const user = JSON.parse(authUserCookie) as { role?: string };
-
-    if (isOwnerRoute && user.role !== 'owner') {
-      return NextResponse.redirect(new URL('/unauthorized', request.url));
-    }
-
-    if (isStaffRoute && user.role !== 'staff' && user.role !== 'owner') {
-      return NextResponse.redirect(new URL('/unauthorized', request.url));
-    }
-  } catch {
-    return NextResponse.redirect(new URL('/login', request.url));
-  }
-
-  return NextResponse.next();
+  return response;
 }
 
 export const config = {
@@ -42,6 +46,7 @@ export const config = {
     '/staff/:path*',
     '/rewards/:path*',
     '/pos/:path*',
+    '/queue/:path*',
     '/wallet/:path*',
   ],
 };

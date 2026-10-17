@@ -1,0 +1,243 @@
+{
+  "title": "Choose the visual direction for BrewPoints",
+  "subtitle": "Web Admin Dashboard, Barista <10s Counter POS, and Mobile Loyalty Wallet",
+  "options": [
+    {
+      "id": "assigned",
+      "label": "Kissaten Ticket Book (Kōhī Ken)",
+      "kicker": "THE ROLL",
+      "lineage": "Japanese kissaten perforated coffee ticket books, hanko validation stamps, and walnut counter trays",
+      "thesis": "Loyalty points, dynamic QR passes, and counter POS scans crafted like a tactile kissaten coffee ticket ledger.",
+      "palette": [
+        "#1C1410",
+        "#F6F1E7",
+        "#C84B31",
+        "#2A5C43",
+        "#D9CBB5"
+      ],
+      "materials": [
+        "unbleached ticket stock",
+        "espresso walnut rail",
+        "vermilion hanko stamp",
+        "perforated stub rules"
+      ],
+      "viewport": "Deep roast walnut navigation rail framing warm ticket-stock work panes, perforated 10-stub reward progress strips, and tabular monospace spend/point calculators.",
+      "risk": "Perforation and stamp motifs must stay crisp and structural so the screen never feels like stationary clipart.",
+      "raised": [
+        {
+          "from": "challenger-saville",
+          "raise": "Every reward, staff account, and ledger row wears a crisp tabular serial code (RWD-01, TX-1042)."
+        },
+        {
+          "from": "challenger-monochrome",
+          "raise": "Every headline KPI on the Owner Dashboard pairs its primary figure with an immediate breakdown proof beneath."
+        },
+        {
+          "from": "challenger-vertical-feed",
+          "raise": "Mobile Customer Wallet and Staff Scanner anchor primary QR actions in the lower thumb zone for one-handed counter use."
+        },
+        {
+          "from": "challenger-acetate",
+          "raise": "Earned point milestones and confirmed redemptions register as physical punch-holes and hanko marks rather than generic pills."
+        }
+      ],
+      "html": ".impeccable/mocks/decision/assigned.html",
+      "comp": ".impeccable/mocks/decision/assigned.webp"
+    },
+    {
+      "id": "model-pick",
+      "label": "Roastery Cupping & Lot Ledger",
+      "kicker": "IMPECCABLE’S PICK",
+      "lineage": "Specialty coffee roastery green-bean lot cards and SCA cupping protocol sheets",
+      "thesis": "Customer accounts, spend calculations, and rewards organized like an artisanal roastery lot ledger and cupping sheet.",
+      "palette": [
+        "#231F1D",
+        "#FAF7F2",
+        "#B86B35",
+        "#3B6E52",
+        "#E6DEC8"
+      ],
+      "materials": [
+        "cotton ledger paper",
+        "roast copper ink",
+        "fine hairline grids"
+      ],
+      "viewport": "Top roastery header bar over a structured 3-column cupping ledger grid with lot-tagged reward cards and spend calculator.",
+      "risk": "Also the direction most specialty coffee software lands on—high domain fit, lower surprise.",
+      "html": ".impeccable/mocks/decision/model-pick.html",
+      "comp": ".impeccable/mocks/decision/model-pick.webp"
+    },
+    {
+      "id": "challenger-split-flap",
+      "label": "Split-Flap Concourse Counter",
+      "verdict": "competitive",
+      "lineage": "Rush-hour rail concourse split-flap departure boards (signals-instruments-split-flap-concourse)",
+      "thesis": "The coffee bar counter and loyalty ledger as a live departure board built for sub-10-second rush-hour clarity.",
+      "palette": [
+        "#141413",
+        "#F5F3EE",
+        "#D97706",
+        "#16A34A",
+        "#292826"
+      ],
+      "materials": [
+        "matte black flap cells",
+        "brushed steel frame",
+        "amber & green row lamps"
+      ],
+      "viewport": "Matte-black split-flap header cells for live JWS token countdowns and point totals above a high-contrast tabular transaction concourse.",
+      "case": "Fuses cleanly with the <10s barista counter scan requirement and live token TTLs; loses narrowly to Kissaten on warm coffee-shop intimacy.",
+      "risk": "Can feel overly industrial if the matte black flap cells overpower the warmth of the cafe.",
+      "html": ".impeccable/mocks/decision/challenger-split-flap.html",
+      "comp": ".impeccable/mocks/decision/challenger-split-flap.webp",
+      "hero": "https://impeccable.style/worlds/cards/signals-instruments-split-flap-concourse-hero.webp"
+    },
+    {
+      "id": "challenger-timetable",
+      "label": "Goldenrod Pocket Timetable",
+      "verdict": "competitive",
+      "lineage": "1971 pocket airline timetable on a lit goldenrod bed (rw-timetable-slide-rack)",
+      "thesis": "A single-type-size operational rack where rank is carried purely by weight, case, reversal, and crisp rules.",
+      "palette": [
+        "#18181B",
+        "#FBF6E9",
+        "#E5B84B",
+        "#C83E2B",
+        "#1F5E3B"
+      ],
+      "materials": [
+        "goldenrod stock bed",
+        "bible ivory panes",
+        "reversed carbon plates"
+      ],
+      "viewport": "Lateral rack of ivory operational panes over a warm goldenrod bed with one reversed carbon plate highlighting the active counter scan.",
+      "case": "Holds product clarity through strict typographic discipline and single-plate focus; loses on coffee-house audience recognition.",
+      "risk": "Single-size typography requires ruthless discipline to keep hero point balances legible at arm's length.",
+      "html": ".impeccable/mocks/decision/challenger-timetable.html",
+      "comp": ".impeccable/mocks/decision/challenger-timetable.webp",
+      "hero": "https://impeccable.style/worlds/cards/rw-timetable-slide-rack-hero.webp"
+    },
+    {
+      "id": "challenger-saville",
+      "label": "Factory Catalog Sleeve",
+      "verdict": "declined",
+      "lineage": "Factory Records FAC catalog numbering and coded hue blocks (brand-identity-canon-saville-catalog-sleeve)",
+      "thesis": "Every reward and transaction indexed by serial catalog code and color-block legend.",
+      "palette": [
+        "#0F0F0F",
+        "#FFFFFF",
+        "#E11D48",
+        "#2563EB"
+      ],
+      "materials": [
+        "matte black sleeve",
+        "white hairline plot",
+        "coded hue strip"
+      ],
+      "viewport": "Stark black field with pulsar point velocity plot and FAC-numbered reward rows.",
+      "risk": "Coded color strips slow down <10s counter scanning.",
+      "case": "Fuses poorly: baristas and customers cannot decode abstract color strips during a morning espresso rush.",
+      "kept": "Serial catalog numbering (RWD-01, TX-1042) in tabular monospace across every reward and transaction.",
+      "hero": "https://impeccable.style/worlds/cards/brand-identity-canon-saville-catalog-sleeve-hero.webp"
+    },
+    {
+      "id": "challenger-monochrome",
+      "label": "Monochrome Proof Grid",
+      "verdict": "declined",
+      "lineage": "Restrained monochrome SaaS marketing grid (digital-design-canon-monochrome-product-marketing)",
+      "thesis": "Near-black on near-white neutral scale where every headline figure pairs immediately with its proof.",
+      "palette": [
+        "#FAFAFA",
+        "#171717",
+        "#737373",
+        "#B45309"
+      ],
+      "materials": [
+        "fine neutral scale",
+        "hairline borders",
+        "single accent fill"
+      ],
+      "viewport": "Two-column neutral grid pairing each KPI claim with its transaction table proof.",
+      "risk": "Reads like generic enterprise SaaS rather than an independent coffee house.",
+      "case": "Fuses poorly: lacks the warmth and tactile character of a specialty coffee loyalty card.",
+      "kept": "Immediate claim-and-proof pairing on every Owner Dashboard KPI card.",
+      "hero": "https://impeccable.style/worlds/cards/digital-design-canon-monochrome-product-marketing-hero.webp"
+    },
+    {
+      "id": "challenger-vertical-feed",
+      "label": "Vertical Snap Feed",
+      "verdict": "declined",
+      "lineage": "Full-bleed vertical media feed with lower-right thumb rail (pop-culture-shelf-vertical-video-feed-surface)",
+      "thesis": "One card owns the entire mobile viewport with thumb-zone action glyphs.",
+      "palette": [
+        "#09090B",
+        "#FFFFFF",
+        "#F59E0B"
+      ],
+      "materials": [
+        "edge-to-edge frame",
+        "bottom scrim",
+        "thumb rail glyphs"
+      ],
+      "viewport": "Full-screen QR card with stacked right-rail action triggers.",
+      "risk": "Breaks multi-panel desktop admin and POS workflows.",
+      "case": "Fuses poorly: multi-column POS and Owner Analytics cannot live inside a single-item vertical video feed.",
+      "kept": "Single-thumb lower-zone ergonomics on the Mobile Customer Wallet and Staff Scanner.",
+      "hero": "https://impeccable.style/worlds/cards/pop-culture-shelf-vertical-video-feed-surface-hero.webp"
+    },
+    {
+      "id": "challenger-acetate",
+      "label": "Punched Acetate Manual",
+      "verdict": "declined",
+      "lineage": "Boxed software reference manual with punched acetate leaves (rw-manual-acetate-tab-board)",
+      "thesis": "Stepped fore-edge section tabs and punched-hole selection states over vivid divider boards.",
+      "palette": [
+        "#E8A331",
+        "#F4F1EA",
+        "#1E1B18",
+        "#C83E2B"
+      ],
+      "materials": [
+        "milk acetate leaf",
+        "chrome yellow board",
+        "punched binding holes"
+      ],
+      "viewport": "Four-column manual grid with a stepped fore-edge tab rail and punched-hole active states.",
+      "risk": "Boxed software manual metaphor feels disconnected from coffee hospitality.",
+      "case": "Fuses poorly on audience identification for cafe customers, though its tactile state grammar is sharp.",
+      "kept": "Physical punch-hole state marks for earned point milestones and redeemed tickets.",
+      "hero": "https://impeccable.style/worlds/cards/rw-manual-acetate-tab-board-hero.webp"
+    }
+  ],
+  "reroll": {
+    "registers": [
+      "safer",
+      "bolder"
+    ]
+  },
+  "buildPath": {
+    "value": "code",
+    "toggle": true
+  },
+  "canon": true,
+  "canonCard": {
+    "label": "Modern Cafe POS & Loyalty Standard",
+    "thesis": "Clean warm-neutral SaaS dashboard and mobile wallet executed with high typographic craft.",
+    "palette": [
+      "#FFFFFF",
+      "#1C1917",
+      "#D97706",
+      "#F5F5F4"
+    ],
+    "materials": [
+      "clean card grid",
+      "warm stone neutrals",
+      "amber primary actions"
+    ],
+    "viewport": "Standard left sidebar admin shell, two-column POS, and stacked mobile wallet cards.",
+    "risk": "Indistinguishable from standard Square/Toast loyalty templates by design.",
+    "html": ".impeccable/mocks/decision/canon.html",
+    "comp": ".impeccable/mocks/decision/canon.webp"
+  },
+  "steer": true
+}

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>BrewPoints — Side A / Side B Cassette J-Card Ledger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Mono:wght@500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 1440px; height: 900px; overflow: hidden;
+    background: #FAF7F0; color: #18181B;
+    font-family: 'Space Grotesk', sans-serif;
+    display: grid; grid-template-columns: 96px 1fr 410px;
+  }
+  .spine {
+    background: #18181B; color: #FAF7F0;
+    display: flex; flex-direction: column; justify-content: space-between; align-items: center;
+    padding: 24px 10px; border-right: 6px solid #DC2626;
+  }
+  .spine-title {
+    writing-mode: vertical-rl; transform: rotate(180deg);
+    font-family: 'Archivo Black', sans-serif; font-size: 24px; letter-spacing: 0.08em;
+  }
+  .inlay { padding: 28px 36px; display: flex; flex-direction: column; gap: 20px; }
+  .stripe {
+    background: linear-gradient(90deg, #DC2626 0 70%, #D97706 70% 100%);
+    color: #FAF7F0; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center;
+    font-family: 'IBM Plex Mono', monospace; font-weight: 700;
+  }
+  .sides { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; flex: 1; }
+  .side-card {
+    border: 2px solid #18181B; background: #FFFFFF; padding: 20px;
+    background-image: repeating-linear-gradient(transparent, transparent 35px, #E5E7EB 36px);
+    display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .side-head {
+    font-family: 'Archivo Black', sans-serif; font-size: 20px;
+    border-bottom: 3px solid #18181B; padding-bottom: 8px; display: flex; justify-content: space-between;
+    background: #FFFFFF;
+  }
+  .track-row {
+    display: flex; justify-content: space-between; font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px; padding: 8px 0; color: #1E3A8A; font-weight: 600;
+  }
+  .btn {
+    background: #1E3A8A; color: #FFFFFF; border: 2px solid #18181B; padding: 14px;
+    font-family: 'IBM Plex Mono', monospace; font-weight: 700; width: 100%; text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+  <aside class="spine">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#D97706;font-weight:700;">C-90</div>
+    <div class="spine-title">BREWPOINTS · HOUSE INLAY</div>
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;">USD $1</div>
+  </aside>
+
+  <main class="inlay">
+    <header class="stripe">
+      <span>J-CARD COUNTER CONSOLE · HIGH BIAS CrO2</span>
+      <span>[SIDE A: EARN POINTS] ⇄ [SIDE B: REDEEM REWARDS]</span>
+    </header>
+
+    <div class="sides">
+      <section class="side-card">
+        <div>
+          <div class="side-head"><span>SIDE A · ALLOCATE SPEND</span><span>[ACTIVE]</span></div>
+          <div class="track-row" style="margin-top:12px;"><span>01. MEMBER: MAYA LIN</span><span>BAL: 145 PTS</span></div>
+          <div class="track-row"><span>02. ORDER SPEND (USD)</span><span>$18.50</span></div>
+          <div class="track-row"><span>03. HALF-UP CALCULATION</span><span>+19 PTS</span></div>
+          <div class="track-row"><span>04. BARISTA SCAN TIME</span><span>00:04.1</span></div>
+        </div>
+        <button class="btn">RECORD TRACK TO SIDE A (+19 PTS)</button>
+      </section>
+
+      <section class="side-card">
+        <div>
+          <div class="side-head"><span>SIDE B · REWARD TRACKLIST</span><span>[CATALOG]</span></div>
+          <div class="track-row" style="margin-top:12px;"><span>B1. HOUSE ESPRESSO SHOT</span><span>060 PTS</span></div>
+          <div class="track-row" style="color:#DC2626;"><span>B2. SINGLE-ORIGIN CORTADO ★</span><span>100 PTS</span></div>
+          <div class="track-row"><span>B3. GEISHA HAND POUR-OVER</span><span>200 PTS</span></div>
+          <div class="track-row"><span>B4. ROASTER BEAN BAG 250G</span><span>350 PTS</span></div>
+        </div>
+        <button class="btn" style="background:#DC2626;">FLIP & CONFIRM B2 CORTADO (-100 PTS)</button>
+      </section>
+    </div>
+  </main>
+
+  <aside style="background:#EFECE3;border-left:2px solid #18181B;padding:28px;display:flex;flex-direction:column;justify-content:space-between;">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;">MOBILE J-CARD FLIP WALLET (390PX)</div>
+    <div style="border:3px solid #18181B;background:#FFFFFF;padding:20px;">
+      <div class="stripe" style="padding:8px 12px;font-size:12px;margin-bottom:14px;">
+        <span>SIDE A · MAYA LIN</span><span>164 PTS</span>
+      </div>
+      <div style="width:140px;height:140px;margin:14px auto;border:2px solid #18181B;background:repeating-linear-gradient(45deg,#1E3A8A 0 6px,#FFFFFF 6px 12px);"></div>
+      <div class="track-row"><span>JWS TOKEN RUN TIME</span><span>09:42 LEFT</span></div>
+      <button class="btn" style="margin-top:12px;">FLIP CARD TO SIDE B (REWARDS)</button>
+    </div>
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#52525B;">Y-AXIS 180° FLIP BETWEEN EARN & REDEEM</div>
+  </aside>
+</body>
+</html>

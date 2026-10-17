@@ -3,25 +3,12 @@
 import { useState } from 'react';
 import {
   QrCode,
-  Coins,
-  Gift,
   CheckCircle2,
   UserCheck,
-  ArrowLeft,
-  Sparkles,
+  RotateCcw,
+  ClipboardPaste,
 } from 'lucide-react';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
+import { computeSpecimenAxes } from '@/lib/design-tokens';
 
 interface ScanPreviewResult {
   mode: 'allocate' | 'redeem';
@@ -51,11 +38,20 @@ interface ReceiptData {
   amount?: string;
 }
 
+const QUICK_SPEND_PRESETS = [
+  { label: 'Espresso', amount: '4.50' },
+  { label: 'Cortado', amount: '6.50' },
+  { label: 'Pour-Over + Pastry', amount: '12.50' },
+  { label: 'Two Drinks', amount: '18.50' },
+  { label: 'Whole Bean Bag', amount: '24.00' },
+  { label: 'Group Order', amount: '42.00' },
+];
+
 export function StaffPosPortal() {
   const [qrInput, setQrInput] = useState('');
   const [scanning, setScanning] = useState(false);
   const [preview, setPreview] = useState<ScanPreviewResult | null>(null);
-  const [amountInput, setAmountInput] = useState('');
+  const [amountInput, setAmountInput] = useState('18.50');
   const [noteInput, setNoteInput] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [receipt, setReceipt] = useState<ReceiptData | null>(null);
@@ -64,7 +60,7 @@ export function StaffPosPortal() {
   const handleScanLookup = async (payloadOverride?: string) => {
     const payload = (payloadOverride ?? qrInput).trim();
     if (!payload) {
-      setError('Please enter or scan a QR payload or customer UID.');
+      setError('Enter or paste a customer QR URI or UID to verify.');
       return;
     }
 
@@ -80,15 +76,27 @@ export function StaffPosPortal() {
       });
       const json = await res.json();
       if (!res.ok) {
-        setError(json.message ?? 'Invalid QR code.');
+        setError(json.message ?? 'Invalid or expired QR token.');
         return;
       }
       setPreview(json.data);
       setQrInput(payload);
     } catch {
-      setError('Failed to verify QR payload.');
+      setError('Network error while verifying QR payload.');
     } finally {
       setScanning(false);
+    }
+  };
+
+  const handlePasteClipboard = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (text.trim()) {
+        setQrInput(text.trim());
+        await handleScanLookup(text.trim());
+      }
+    } catch {
+      setError('Clipboard read permission denied. Paste manually into the field.');
     }
   };
 
@@ -98,7 +106,9 @@ export function StaffPosPortal() {
     setError(null);
 
     const numericAmount = Number(amountInput);
-    const isDynamicQr = preview.qr_payload.startsWith('brewpoints://allocate?token=');
+    const isDynamicQr = preview.qr_payload.startsWith(
+      'brewpoints://allocate?token='
+    );
 
     try {
       const res = await fetch('/api/v1/points/allocate', {
@@ -126,7 +136,6 @@ export function StaffPosPortal() {
         amount: numericAmount.toFixed(2),
       });
       setPreview(null);
-      setAmountInput('');
       setNoteInput('');
       setQrInput('');
     } catch {
@@ -171,272 +180,426 @@ export function StaffPosPortal() {
     }
   };
 
+  const numericSpend = Number(amountInput);
   const previewPoints =
-    amountInput && Number.isFinite(Number(amountInput)) && Number(amountInput) >= 1
-      ? Math.floor(Number(amountInput) + 0.5)
+    amountInput && Number.isFinite(numericSpend) && numericSpend >= 1
+      ? Math.floor(numericSpend + 0.5)
       : 0;
 
+  const specimen = computeSpecimenAxes(previewPoints, 50);
+
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="space-y-6">
       {error && (
-        <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700 font-medium">
-          {error}
+        <div
+          role="alert"
+          className="border-2 border-[#B91C1C] bg-[#FEF2F2] p-4 font-mono text-xs font-semibold text-[#B91C1C]"
+        >
+          SCANNER ALERT: {error}
         </div>
       )}
 
-      {/* Confirmation Receipt Screen */}
+      {/* Atomic Ledger Receipt Banner */}
       {receipt && (
-        <Card className="border-green-200 bg-green-50/60">
-          <CardHeader>
-            <div className="flex items-center gap-2 text-green-800">
-              <CheckCircle2 className="h-6 w-6 text-green-600" />
-              <CardTitle>
-                {receipt.type === 'allocate'
-                  ? 'Points Credited Successfully!'
-                  : 'Reward Redemption Confirmed!'}
-              </CardTitle>
+        <section className="border-2 border-[#15803D] bg-[#DCFCE7] p-6 text-[#111110]">
+          <div className="flex flex-wrap items-start justify-between gap-4 border-b border-[#15803D]/40 pb-4">
+            <div className="flex items-center gap-3">
+              <CheckCircle2 className="h-6 w-6 text-[#15803D] shrink-0" />
+              <div>
+                <h2 className="text-2xl font-bold text-[#111110]">
+                  {receipt.type === 'allocate'
+                    ? 'Points Credited to Ledger'
+                    : 'Reward Redemption Confirmed'}
+                </h2>
+                <p className="font-mono text-xs text-[#15803D]">
+                  ATOMIC TRANSACTION COMMITTED · JTI NONCE CONSUMED
+                </p>
+              </div>
             </div>
-            <CardDescription className="text-green-700">
-              Transaction has been committed atomically to the MySQL ledger.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
-            <div>
-              <p className="text-muted-foreground text-xs">Customer</p>
-              <p className="font-semibold text-base">{receipt.customer_name}</p>
-            </div>
-            <div>
-              <p className="text-muted-foreground text-xs">
-                {receipt.type === 'allocate'
-                  ? `Points Added ($${receipt.amount})`
-                  : `Redeemed (${receipt.reward_name})`}
-              </p>
-              <p className="font-bold text-base text-green-700">
-                {receipt.type === 'allocate' ? '+' : '-'}
-                {receipt.points_delta} pts
-              </p>
-            </div>
-            <div>
-              <p className="text-muted-foreground text-xs">Updated Balance</p>
-              <p className="font-bold text-base">{receipt.new_balance} pts</p>
-            </div>
-          </CardContent>
-          <CardFooter>
-            <Button variant="outline" size="sm" onClick={() => setReceipt(null)}>
+            <button
+              type="button"
+              onClick={() => setReceipt(null)}
+              className="bg-[#111110] px-4 py-2 font-mono text-xs font-semibold uppercase text-[#F8F6F0] hover:bg-[#E02E24] transition-colors cursor-pointer"
+            >
               Scan Next Customer
-            </Button>
-          </CardFooter>
-        </Card>
+            </button>
+          </div>
+
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4 font-mono text-xs tabular-nums">
+            <div>
+              <div className="text-[#4A4843]">CUSTOMER</div>
+              <div className="mt-1 text-base font-bold text-[#111110]">
+                {receipt.customer_name}
+              </div>
+            </div>
+            <div>
+              <div className="text-[#4A4843]">
+                {receipt.type === 'allocate'
+                  ? `VERIFIED SPEND ($${receipt.amount} USD)`
+                  : `FULFILLED REWARD (${receipt.reward_name})`}
+              </div>
+              <div className="mt-1 text-base font-bold text-[#15803D]">
+                {receipt.type === 'allocate' ? '+' : '-'}
+                {receipt.points_delta} PTS
+              </div>
+            </div>
+            <div>
+              <div className="text-[#4A4843]">UPDATED BALANCE</div>
+              <div className="mt-1 text-base font-bold text-[#111110]">
+                {receipt.new_balance} PTS
+              </div>
+            </div>
+          </div>
+        </section>
       )}
 
-      {/* Step 1: Unified QR Scanner Input */}
-      {!preview && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <QrCode className="h-5 w-5 text-amber-700" />
-              Unified QR Scanner & Customer Lookup
-            </CardTitle>
-            <CardDescription>
-              Scan or paste a customer&apos;s{' '}
-              <code>brewpoints://allocate?token=...</code> or{' '}
-              <code>brewpoints://redeem?token=...</code> QR code payload, or
-              select a customer below.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex gap-2">
-              <Input
-                placeholder="Paste brewpoints://allocate?token=... or brewpoints://redeem?token=..."
-                value={qrInput}
-                onChange={(e) => setQrInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleScanLookup();
-                }}
-              />
-              <Button onClick={() => handleScanLookup()} disabled={scanning}>
-                {scanning ? 'Verifying...' : 'Scan / Verify'}
-              </Button>
+      {/* Main Two-Column Counter Terminal */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 border-2 border-[#111110] bg-[#FFFFFF]">
+        {/* Left 5 Columns: QR Scanner & Customer Verification */}
+        <section className="lg:col-span-5 p-6 md:p-8 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-[#111110] bg-[#EFECE3]">
+          <div className="space-y-6">
+            <div className="flex items-start justify-between gap-2 border-b border-[#111110] pb-4">
+              <div>
+                <h2 className="text-2xl font-bold text-[#111110]">
+                  QR Scanner &amp; Lookup
+                </h2>
+                <p className="mt-1 text-xs text-[#4A4843]">
+                  Scan or paste a <code>brewpoints://allocate</code> or{' '}
+                  <code>brewpoints://redeem</code> JWS URI, or tap a quick
+                  counter member below.
+                </p>
+              </div>
+              <QrCode className="h-5 w-5 text-[#111110] shrink-0 mt-1" />
             </div>
 
-            <div className="rounded-lg border bg-muted/40 p-3 space-y-2">
-              <p className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-                <Sparkles className="h-3.5 w-3.5 text-amber-600" />
-                Quick Counter Lookup (Seeded Demo Customer)
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => handleScanLookup('customer-dummy-uid-001')}
+            <div className="space-y-3">
+              <label
+                htmlFor="pos-qr-input"
+                className="block font-mono text-xs font-semibold uppercase text-[#111110]"
+              >
+                QR Payload or Customer UID
+              </label>
+              <div className="flex gap-2">
+                <input
+                  id="pos-qr-input"
+                  type="text"
+                  placeholder="brewpoints://allocate?token=..."
+                  value={qrInput}
+                  onChange={(e) => setQrInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleScanLookup();
+                  }}
+                  className="flex-1 border-2 border-[#111110] bg-[#FFFFFF] px-3.5 py-2.5 font-mono text-xs text-[#111110] placeholder:text-[#4A4843]"
+                />
+                <button
+                  type="button"
+                  onClick={() => handleScanLookup()}
+                  disabled={scanning}
+                  className="bg-[#111110] px-4 py-2.5 font-mono text-xs font-semibold uppercase text-[#F8F6F0] hover:bg-[#E02E24] disabled:opacity-50 transition-colors cursor-pointer shrink-0"
                 >
-                  <UserCheck className="mr-1.5 h-3.5 w-3.5" />
-                  Jane Customer (customer@brewpoints.local)
-                </Button>
+                  {scanning ? 'Verifying...' : 'Verify'}
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={handlePasteClipboard}
+                  className="flex items-center justify-center gap-1.5 border border-[#111110] bg-[#FFFFFF] px-3 py-2 font-mono text-xs font-semibold text-[#111110] hover:bg-[#F8F6F0] transition-colors cursor-pointer"
+                >
+                  <ClipboardPaste className="h-3.5 w-3.5" />
+                  <span>Paste QR URI</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleScanLookup('customer-dummy-uid-001')}
+                  className="flex items-center justify-center gap-1.5 border border-[#111110] bg-[#FFFFFF] px-3 py-2 font-mono text-xs font-semibold text-[#111110] hover:bg-[#F8F6F0] transition-colors cursor-pointer"
+                >
+                  <UserCheck className="h-3.5 w-3.5 text-[#E02E24]" />
+                  <span>Load Jane Customer</span>
+                </button>
               </div>
             </div>
-          </CardContent>
-        </Card>
-      )}
 
-      {/* Step 2A: Points Allocation Flow */}
-      {preview && preview.mode === 'allocate' && (
-        <Card className="border-amber-200 shadow-md">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <Badge className="bg-amber-700">Point Allocation</Badge>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setPreview(null);
-                  setError(null);
-                }}
-              >
-                <ArrowLeft className="mr-1.5 h-4 w-4" />
-                Back to Scanner
-              </Button>
-            </div>
-            <CardTitle className="text-2xl mt-2">
-              Allocate Points to {preview.customer.name}
-            </CardTitle>
-            <CardDescription>
-              {preview.customer.email} • Current Balance:{' '}
-              <strong className="text-foreground">
-                {preview.customer.current_points} pts
-              </strong>
-            </CardDescription>
-          </CardHeader>
+            {/* Verified Customer Status Box */}
+            {preview ? (
+              <div className="border-2 border-[#111110] bg-[#FFFFFF] p-5 space-y-3">
+                <div className="flex items-center justify-between border-b border-[#D4D0C5] pb-2.5">
+                  <span className="font-mono text-xs font-bold uppercase text-[#15803D]">
+                    ● VERIFIED MEMBER
+                  </span>
+                  <span className="bg-[#111110] px-2 py-0.5 font-mono text-[11px] font-semibold uppercase text-[#F8F6F0]">
+                    MODE: {preview.mode}
+                  </span>
+                </div>
 
-          <CardContent className="space-y-4">
-            <div className="grid gap-2">
-              <Label htmlFor="spend-amount">
-                Purchase Amount ($1.00 – $1,000.00)
-              </Label>
-              <Input
-                id="spend-amount"
-                type="number"
-                step="0.01"
-                min="1"
-                max="1000"
-                placeholder="e.g. 125.50"
-                value={amountInput}
-                onChange={(e) => setAmountInput(e.target.value)}
-              />
-            </div>
+                <div>
+                  <div className="text-lg font-bold text-[#111110]">
+                    {preview.customer.name}
+                  </div>
+                  <div className="font-mono text-xs text-[#4A4843]">
+                    {preview.customer.email}
+                  </div>
+                </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="alloc-note">Note (Optional)</Label>
-              <Input
-                id="alloc-note"
-                placeholder="e.g. 2x Iced Caramel Macchiato + Croissant"
-                value={noteInput}
-                onChange={(e) => setNoteInput(e.target.value)}
-              />
-            </div>
+                <div className="flex items-baseline justify-between border-t border-[#D4D0C5] pt-3 font-mono text-xs tabular-nums">
+                  <span className="text-[#4A4843]">CURRENT BALANCE</span>
+                  <span className="text-base font-bold text-[#111110]">
+                    {preview.customer.current_points} PTS
+                  </span>
+                </div>
 
-            <div className="rounded-lg bg-amber-50 border border-amber-200 p-4 flex items-center justify-between">
-              <div className="flex items-center gap-2 text-amber-900">
-                <Coins className="h-5 w-5 text-amber-700" />
-                <span className="font-medium text-sm">
-                  Points to Credit (1 pt / $1.00, rounded half-up):
-                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPreview(null);
+                    setError(null);
+                  }}
+                  className="w-full flex items-center justify-center gap-1.5 border border-[#111110] bg-[#EFECE3] py-2 font-mono text-xs font-semibold uppercase text-[#111110] hover:bg-[#D4D0C5] transition-colors cursor-pointer"
+                >
+                  <RotateCcw className="h-3.5 w-3.5" />
+                  <span>Clear Scanned Member</span>
+                </button>
               </div>
-              <span className="text-2xl font-bold text-amber-900">
-                +{previewPoints} pts
-              </span>
-            </div>
-          </CardContent>
-
-          <CardFooter className="flex justify-end gap-2 border-t pt-4">
-            <Button
-              variant="outline"
-              onClick={() => {
-                setPreview(null);
-                setError(null);
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleAllocatePoints}
-              disabled={submitting || previewPoints < 1}
-            >
-              {submitting
-                ? 'Crediting Points...'
-                : `Confirm & Credit +${previewPoints} Points`}
-            </Button>
-          </CardFooter>
-        </Card>
-      )}
-
-      {/* Step 2B: Reward Redemption Confirmation Flow */}
-      {preview && preview.mode === 'redeem' && preview.reward && (
-        <Card className="border-amber-300 shadow-md">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <Badge variant="default">Reward Redemption Verification</Badge>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setPreview(null);
-                  setError(null);
-                }}
-              >
-                <ArrowLeft className="mr-1.5 h-4 w-4" />
-                Back to Scanner
-              </Button>
-            </div>
-            <CardTitle className="text-2xl mt-2 flex items-center gap-2">
-              <Gift className="h-6 w-6 text-amber-700" />
-              Confirm Reward: {preview.reward.name}
-            </CardTitle>
-            <CardDescription>
-              Verify customer details below and click Confirm to deduct points
-              and fulfill the reward.
-            </CardDescription>
-          </CardHeader>
-
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 rounded-lg border p-4 bg-muted/20">
-              <div>
-                <p className="text-xs text-muted-foreground">Customer</p>
-                <p className="font-semibold">{preview.customer.name}</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Current Balance</p>
-                <p className="font-semibold">
-                  {preview.customer.current_points} pts
+            ) : (
+              <div className="border border-dashed border-[#111110] bg-[#F8F6F0] p-5 font-mono text-xs text-[#4A4843] space-y-1">
+                <div className="font-semibold text-[#111110]">
+                  STANDBY FOR CUSTOMER SCAN
+                </div>
+                <p>
+                  Tap &ldquo;Load Jane Customer&rdquo; above or paste a QR
+                  payload from the Customer Wallet to bind this transaction.
                 </p>
               </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Reward Cost</p>
-                <p className="font-bold text-amber-700">
-                  -{preview.reward.points_required} pts
-                </p>
+            )}
+          </div>
+
+          <div className="mt-6 border-t border-[#D4D0C5] pt-4 font-mono text-[11px] text-[#4A4843] tabular-nums">
+            ANTI-REPLAY: JWS SIGNATURE + ATOMIC JTI LOCK
+          </div>
+        </section>
+
+        {/* Right 7 Columns: Kinetic Variable-Type Spend Calculator or Redemption Confirmation */}
+        <section className="lg:col-span-7 p-6 md:p-8 flex flex-col justify-between bg-[#FFFFFF]">
+          {preview?.mode === 'redeem' && preview.reward ? (
+            <div className="space-y-6 flex-1 flex flex-col justify-between">
+              <div className="space-y-4">
+                <div className="flex items-start justify-between gap-4 border-b-2 border-[#111110] pb-4">
+                  <div>
+                    <h2 className="text-2xl md:text-3xl font-bold text-[#111110]">
+                      Confirm Reward: {preview.reward.name}
+                    </h2>
+                    <p className="mt-1 text-sm text-[#4A4843]">
+                      {preview.reward.description ||
+                        'Verify customer balance below and confirm to deduct points atomically.'}
+                    </p>
+                  </div>
+                  <span className="bg-[#DCFCE7] border border-[#15803D] px-2.5 py-1 font-mono text-xs font-semibold text-[#15803D]">
+                    JWS VALID
+                  </span>
+                </div>
+
+                <div className="border-y-2 border-[#111110] bg-[#F8F6F0] p-6 flex flex-wrap items-baseline justify-between gap-4">
+                  <div
+                    className="font-specimen text-6xl md:text-7xl leading-none text-[#E02E24]"
+                    style={{
+                      ['--specimen-wght' as string]: 850,
+                      ['--specimen-opsz' as string]: 120,
+                    }}
+                  >
+                    -{preview.reward.points_required}
+                    <span className="ml-2 text-2xl font-normal text-[#4A4843]">
+                      pts
+                    </span>
+                  </div>
+                  <div className="font-mono text-xs text-[#4A4843] text-right tabular-nums space-y-1">
+                    <div className="font-semibold text-[#111110]">
+                      MEMBER: {preview.customer.name.toUpperCase()}
+                    </div>
+                    <div>
+                      BALANCE: {preview.customer.current_points} PTS →{' '}
+                      {preview.customer.current_points -
+                        preview.reward.points_required}{' '}
+                      PTS
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-3 pt-6 border-t border-[#D4D0C5]">
+                <button
+                  type="button"
+                  onClick={() => setPreview(null)}
+                  className="border border-[#111110] bg-[#FFFFFF] px-5 py-3.5 font-mono text-xs font-semibold uppercase text-[#111110] hover:bg-[#EFECE3] cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={submitting}
+                  onClick={handleConfirmRedemption}
+                  className="flex-1 bg-[#15803D] px-6 py-3.5 font-mono text-xs font-bold uppercase tracking-wider text-[#F8F6F0] hover:bg-[#166534] disabled:opacity-50 transition-colors cursor-pointer"
+                >
+                  {submitting
+                    ? 'CONFIRMING REDEMPTION...'
+                    : `Confirm & Deduct -${preview.reward.points_required} Points`}
+                </button>
               </div>
             </div>
-          </CardContent>
+          ) : (
+            <div className="space-y-6 flex-1 flex flex-col justify-between">
+              <div className="space-y-6">
+                <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[#111110] pb-4">
+                  <div>
+                    <h2 className="text-2xl font-bold text-[#111110]">
+                      {preview
+                        ? `Allocate Spend for ${preview.customer.name}`
+                        : 'Purchase Spend & Point Calculator'}
+                    </h2>
+                    <p className="mt-0.5 text-xs text-[#4A4843]">
+                      Select a quick menu preset or enter custom USD spend
+                      ($1.00 – $1,000.00).
+                    </p>
+                  </div>
+                  <span className="font-mono text-xs text-[#4A4843] tabular-nums">
+                    $1.00 = 1 PT (HALF-UP)
+                  </span>
+                </div>
 
-          <CardFooter className="flex justify-end gap-2 border-t pt-4">
-            <Button
-              variant="outline"
-              onClick={() => {
-                setPreview(null);
-                setError(null);
-              }}
-            >
-              Cancel
-            </Button>
-            <Button onClick={handleConfirmRedemption} disabled={submitting}>
-              {submitting
-                ? 'Confirming Redemption...'
-                : `Confirm Redemption (-${preview.reward.points_required} pts)`}
-            </Button>
-          </CardFooter>
-        </Card>
-      )}
+                {/* Quick Menu Presets */}
+                <div className="space-y-2">
+                  <div className="font-mono text-xs font-semibold uppercase text-[#4A4843]">
+                    Quick Espresso Bar Presets (USD)
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {QUICK_SPEND_PRESETS.map((preset) => {
+                      const isSelected = amountInput === preset.amount;
+                      return (
+                        <button
+                          key={preset.label}
+                          type="button"
+                          onClick={() => setAmountInput(preset.amount)}
+                          className={`p-2.5 text-left border transition-colors cursor-pointer ${
+                            isSelected
+                              ? 'border-[#111110] bg-[#111110] text-[#F8F6F0]'
+                              : 'border-[#D4D0C5] bg-[#F8F6F0] text-[#111110] hover:border-[#111110]'
+                          }`}
+                        >
+                          <div className="text-xs font-semibold truncate">
+                            {preset.label}
+                          </div>
+                          <div className="font-mono text-xs opacity-80 tabular-nums">
+                            ${preset.amount} → +
+                            {Math.floor(Number(preset.amount) + 0.5)} pts
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Custom USD Input & Note */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label
+                      htmlFor="spend-amount"
+                      className="block font-mono text-xs font-semibold uppercase text-[#111110]"
+                    >
+                      Purchase Total ($ USD)
+                    </label>
+                    <input
+                      id="spend-amount"
+                      type="number"
+                      step="0.01"
+                      min="1"
+                      max="1000"
+                      placeholder="18.50"
+                      value={amountInput}
+                      onChange={(e) => setAmountInput(e.target.value)}
+                      className="w-full border-2 border-[#111110] bg-[#F8F6F0] px-3.5 py-2.5 font-mono text-base font-bold text-[#111110] tabular-nums"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label
+                      htmlFor="alloc-note"
+                      className="block font-mono text-xs font-semibold uppercase text-[#111110]"
+                    >
+                      Order Note (Optional)
+                    </label>
+                    <input
+                      id="alloc-note"
+                      type="text"
+                      placeholder="e.g. 2x Cortado + Almond Croissant"
+                      value={noteInput}
+                      onChange={(e) => setNoteInput(e.target.value)}
+                      className="w-full border border-[#111110] bg-[#FFFFFF] px-3.5 py-2.5 text-sm text-[#111110] placeholder:text-[#4A4843]"
+                    />
+                  </div>
+                </div>
+
+                {/* Live Kinetic Variable-Axis Award Specimen */}
+                <div className="border-y-2 border-[#111110] bg-[#F8F6F0] p-5 flex flex-wrap items-baseline justify-between gap-4">
+                  <div>
+                    <div
+                      className="font-specimen text-6xl sm:text-7xl leading-none text-[#111110]"
+                      style={{
+                        ['--specimen-wght' as string]: specimen.wght,
+                        ['--specimen-opsz' as string]: specimen.opsz,
+                      }}
+                    >
+                      +{previewPoints}
+                      <span className="ml-2 text-2xl font-normal tracking-normal text-[#4A4843]">
+                        pts
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="font-mono text-xs text-[#4A4843] text-left sm:text-right space-y-1 tabular-nums">
+                    <div className="font-semibold text-[#111110]">
+                      AWARD SPECIMEN READOUT
+                    </div>
+                    <div>
+                      &apos;wght&apos; {specimen.wght} · &apos;opsz&apos;{' '}
+                      {specimen.opsz}
+                    </div>
+                    {preview && (
+                      <div className="text-[#15803D] font-semibold">
+                        NEW BALANCE:{' '}
+                        {preview.customer.current_points + previewPoints} PTS
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Bar */}
+              <div className="pt-4 border-t border-[#D4D0C5]">
+                {preview ? (
+                  <button
+                    type="button"
+                    disabled={submitting || previewPoints < 1}
+                    onClick={handleAllocatePoints}
+                    className="w-full bg-[#E02E24] py-4 px-6 font-mono text-xs font-bold uppercase tracking-wider text-[#F8F6F0] hover:bg-[#B82219] disabled:opacity-40 transition-colors cursor-pointer"
+                  >
+                    {submitting
+                      ? 'CREDITING LEDGER...'
+                      : `Confirm & Credit +${previewPoints} Points to ${preview.customer.name}`}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => handleScanLookup('customer-dummy-uid-001')}
+                    className="w-full bg-[#111110] py-4 px-6 font-mono text-xs font-bold uppercase tracking-wider text-[#F8F6F0] hover:bg-[#E02E24] transition-colors cursor-pointer"
+                  >
+                    Load Jane Customer to Credit +{previewPoints} Points
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+        </section>
+      </div>
     </div>
   );
 }

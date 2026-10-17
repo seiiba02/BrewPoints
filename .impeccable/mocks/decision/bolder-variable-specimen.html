@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>BrewPoints — Kinetic Variable-Type Espresso Foundry</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..900&family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 1440px; height: 900px; overflow: hidden;
+    background: #F8F6F0; color: #111110;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    display: grid; grid-template-columns: 230px 1fr 400px;
+  }
+  .mono { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; }
+  .rail {
+    background: #111110; color: #F8F6F0; padding: 28px 22px;
+    display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .nav-link { padding: 12px 0; border-bottom: 1px solid #2A2A28; color: #A1A09A; font-size: 13px; font-weight: 600; display: flex; justify-content: space-between; }
+  .nav-link.active { color: #F8F6F0; border-bottom: 2px solid #E02E24; }
+  .main { padding: 32px 36px; display: flex; flex-direction: column; justify-content: space-between; border-right: 1px solid #111110; }
+  .specimen-hero {
+    border-top: 2px solid #111110; border-bottom: 2px solid #111110; padding: 22px 0;
+    display: grid; grid-template-columns: 1.3fr 1fr; gap: 28px; align-items: end;
+  }
+  .giant-num {
+    font-family: 'Fraunces', serif; font-size: 108px; line-height: 0.88;
+    font-variation-settings: 'wght' 850, 'opsz' 144; letter-spacing: -0.04em;
+  }
+  .axis-bar { height: 8px; background: #E2DFD7; margin-top: 14px; position: relative; }
+  .axis-fill { width: 74%; height: 100%; background: #E02E24; }
+  .kpi-strip { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: 1px solid #111110; }
+  .kpi-cell { padding: 18px 16px 18px 0; border-right: 1px solid #D4D0C5; }
+  .kpi-cell:last-child { border-right: none; padding-left: 16px; }
+  .kpi-big { font-family: 'Fraunces', serif; font-size: 44px; font-variation-settings: 'wght' 760, 'opsz' 72; margin: 6px 0; }
+  .btn {
+    background: #E02E24; color: #F8F6F0; border: none; padding: 16px 20px;
+    font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase; width: 100%;
+  }
+  .table-row { display: grid; grid-template-columns: 90px 1.4fr 1fr 100px; padding: 11px 0; border-bottom: 1px solid #D4D0C5; font-size: 13px; align-items: center; }
+  .wallet { background: #EFECE3; padding: 28px; display: flex; flex-direction: column; justify-content: space-between; }
+  .pass { background: #F8F6F0; border: 2px solid #111110; padding: 24px; display: flex; flex-direction: column; gap: 18px; }
+</style>
+</head>
+<body>
+  <aside class="rail">
+    <div>
+      <div class="mono" style="color:#E02E24;margin-bottom:6px;">FOUNDRY SPECIMEN · V1</div>
+      <div style="font-family:'Fraunces',serif;font-size:28px;font-weight:800;">BrewPoints</div>
+      <div style="margin-top:36px;">
+        <div class="nav-link active"><span>Counter Terminal</span><span class="mono">01</span></div>
+        <div class="nav-link"><span>Owner Telemetry</span><span class="mono">02</span></div>
+        <div class="nav-link"><span>Reward Specimens</span><span class="mono">03</span></div>
+        <div class="nav-link"><span>Staff Operators</span><span class="mono">04</span></div>
+      </div>
+    </div>
+    <div class="mono" style="color:#A1A09A;line-height:1.6;">
+      AXIS: WGHT 300..900<br/>RATE: $1.00 = 1 PT<br/>JWS: HS256 ACTIVE
+    </div>
+  </aside>
+
+  <main class="main">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <span class="mono">STATION 01 · LIVE VARIABLE-AXIS COUNTER CALCULATOR</span>
+      <span class="mono" style="background:#111110;color:#F8F6F0;padding:4px 8px;">SCAN LATENCY: 3.9S</span>
+    </div>
+
+    <section class="specimen-hero">
+      <div>
+        <div class="mono" style="color:#E02E24;margin-bottom:8px;">SCANNED: MAYA LIN (145 PTS) · SPEND INPUT ($18.50 USD)</div>
+        <div class="giant-num">+19<span style="font-size:36px;letter-spacing:0;">PTS</span></div>
+        <div class="axis-bar"><div class="axis-fill"></div></div>
+        <div class="mono" style="margin-top:8px;color:#575652;">FONT-VARIATION-SETTINGS: 'WGHT' 850, 'OPSZ' 144 · HALF-UP FROM $18.50</div>
+      </div>
+      <div style="background:#111110;color:#F8F6F0;padding:22px;display:flex;flex-direction:column;gap:14px;">
+        <div class="mono" style="color:#A1A09A;">PENDING REDEMPTION SPECIMEN</div>
+        <div style="font-family:'Fraunces',serif;font-size:28px;">Single-Origin Cortado</div>
+        <div class="mono" style="color:#22C55E;">JWS NONCE VALID · -100 PTS ON CONFIRM</div>
+        <button class="btn">STAMP +19 PTS / CONFIRM QUEUE</button>
+      </div>
+    </section>
+
+    <section class="kpi-strip">
+      <div class="kpi-cell">
+        <div class="mono" style="color:#575652;">DAILY VELOCITY</div>
+        <div class="kpi-big">1,480</div>
+        <div class="mono" style="color:#15803D;">+18.4% · $1,480.00 SPEND</div>
+      </div>
+      <div class="kpi-cell" style="padding-left:16px;">
+        <div class="mono" style="color:#575652;">REDEMPTIONS</div>
+        <div class="kpi-big">34</div>
+        <div class="mono">RANK #1: CORTADO (14)</div>
+      </div>
+      <div class="kpi-cell">
+        <div class="mono" style="color:#575652;">ACTIVE ACCOUNTS</div>
+        <div class="kpi-big">219</div>
+        <div class="mono">100% JTI REPLAY GUARD</div>
+      </div>
+    </section>
+
+    <section>
+      <div class="table-row mono" style="border-bottom:2px solid #111110;">
+        <span>INDEX</span><span>MEMBER</span><span>OPERATION</span><span>DELTA</span>
+      </div>
+      <div class="table-row"><span class="mono">TX-1048</span><strong>Maya Lin</strong><span>Spend $18.50 Allocation</span><span class="mono" style="color:#15803D;font-weight:700;">+19 PTS</span></div>
+      <div class="table-row"><span class="mono">TX-1047</span><strong>Kenji Sato</strong><span>Redeemed Cortado</span><span class="mono" style="color:#E02E24;font-weight:700;">-100 PTS</span></div>
+      <div class="table-row"><span class="mono">TX-1046</span><strong>Elena Rostova</strong><span>Spend $12.25 Allocation</span><span class="mono" style="color:#15803D;font-weight:700;">+12 PTS</span></div>
+    </section>
+  </main>
+
+  <aside class="wallet">
+    <div class="mono">390PX MOBILE WALLET · VARIABLE BALANCE</div>
+    <div class="pass">
+      <div style="display:flex;justify-content:space-between;" class="mono">
+        <span>MEMBER #0194</span><span style="color:#E02E24;">82% TO 200 PT TIER</span>
+      </div>
+      <div style="font-family:'Fraunces',serif;font-size:84px;line-height:0.9;font-variation-settings:'wght' 820,'opsz' 144;">
+        164<span style="font-size:22px;">PTS</span>
+      </div>
+      <div style="font-size:13px;color:#575652;">Glyph weight scales live from 300 (0 pts) to 900 (200 pts).</div>
+      <div style="border-top:2px solid #111110;border-bottom:2px solid #111110;padding:18px;text-align:center;">
+        <div class="mono">brewpoints://allocate?token=eyJ...</div>
+        <div style="width:136px;height:136px;margin:12px auto;border:2px solid #111110;background:repeating-linear-gradient(90deg,#111110 0 6px,#F8F6F0 6px 12px);"></div>
+        <div class="mono" style="color:#E02E24;font-weight:700;">TTL 09:42 · AUTO-ROTATING</div>
+      </div>
+      <button class="btn">CLAIM REWARD SPECIMEN</button>
+    </div>
+    <div class="mono" style="color:#575652;">THUMB-ZONE PRIMARY ACTION</div>
+  </aside>
+</body>
+</html>

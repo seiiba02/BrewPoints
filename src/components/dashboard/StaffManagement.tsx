@@ -18,10 +18,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Plus, Pencil, Trash2, UserCheck, UserX, RefreshCw } from 'lucide-react';
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  UserCheck,
+  UserX,
+  RefreshCw,
+} from 'lucide-react';
 
 interface StaffMember {
   id: number;
@@ -155,44 +159,70 @@ export function StaffManagement() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <h2 className="text-xl font-semibold">Staff Directory</h2>
-          <Button variant="ghost" size="icon" onClick={fetchStaff} title="Refresh">
-            <RefreshCw className="h-4 w-4" />
-          </Button>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <h2 className="text-xl font-bold text-[#111110]">
+            Registered Counter Operators ({staff.length})
+          </h2>
+          <button
+            type="button"
+            onClick={fetchStaff}
+            title="Refresh Roster"
+            className="inline-flex items-center gap-1.5 border border-[#111110] bg-[#FFFFFF] px-3 py-1.5 font-mono text-xs font-semibold uppercase text-[#111110] hover:bg-[#EFECE3] transition-colors cursor-pointer"
+          >
+            <RefreshCw className="h-3.5 w-3.5" />
+            <span>Refresh</span>
+          </button>
         </div>
 
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
           <DialogTrigger
             render={
-              <Button>
-                <Plus className="mr-2 h-4 w-4" /> Add Staff
-              </Button>
+              <button
+                type="button"
+                className="inline-flex items-center gap-2 bg-[#E02E24] px-4 py-2.5 font-mono text-xs font-bold uppercase tracking-wider text-[#F8F6F0] hover:bg-[#B82219] transition-colors cursor-pointer"
+              >
+                <Plus className="h-4 w-4" />
+                <span>Add Barista Account</span>
+              </button>
             }
           />
-          <DialogContent>
+          <DialogContent className="border-2 border-[#111110] bg-[#F8F6F0] text-[#111110] rounded-none sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>Add New Staff</DialogTitle>
-              <DialogDescription>
-                Create a new barista staff account in MySQL.
+              <DialogTitle className="text-2xl font-bold text-[#111110]">
+                Provision Barista Account
+              </DialogTitle>
+              <DialogDescription className="text-xs text-[#4A4843]">
+                Register a new staff operator authorized for the Counter POS.
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="name">Name</Label>
-                <Input
+              <div className="grid gap-1.5">
+                <label
+                  htmlFor="name"
+                  className="font-mono text-xs font-semibold uppercase text-[#111110]"
+                >
+                  Full Name
+                </label>
+                <input
                   id="name"
+                  type="text"
                   placeholder="Alex Barista"
                   value={formState.name}
                   onChange={(e) =>
                     setFormState({ ...formState, name: e.target.value })
                   }
+                  className="border border-[#111110] bg-[#FFFFFF] px-3 py-2 text-sm text-[#111110]"
                 />
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
+              <div className="grid gap-1.5">
+                <label
+                  htmlFor="email"
+                  className="font-mono text-xs font-semibold uppercase text-[#111110]"
+                >
+                  Email Address
+                </label>
+                <input
                   id="email"
                   type="email"
                   placeholder="alex@brewpoints.local"
@@ -200,160 +230,239 @@ export function StaffManagement() {
                   onChange={(e) =>
                     setFormState({ ...formState, email: e.target.value })
                   }
+                  className="border border-[#111110] bg-[#FFFFFF] px-3 py-2 text-sm text-[#111110]"
                 />
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="phone">Phone (Optional)</Label>
-                <Input
+              <div className="grid gap-1.5">
+                <label
+                  htmlFor="phone"
+                  className="font-mono text-xs font-semibold uppercase text-[#111110]"
+                >
+                  Phone (Optional)
+                </label>
+                <input
                   id="phone"
-                  placeholder="+639000000099"
+                  type="text"
+                  placeholder="+1 (555) 019-2834"
                   value={formState.phone}
                   onChange={(e) =>
                     setFormState({ ...formState, phone: e.target.value })
                   }
+                  className="border border-[#111110] bg-[#FFFFFF] px-3 py-2 font-mono text-xs text-[#111110]"
                 />
               </div>
             </div>
             <DialogFooter>
-              <Button onClick={handleCreate}>Create Staff</Button>
+              <button
+                type="button"
+                onClick={handleCreate}
+                className="w-full bg-[#E02E24] py-3 px-5 font-mono text-xs font-bold uppercase text-[#F8F6F0] hover:bg-[#B82219] cursor-pointer"
+              >
+                Create Operator Account
+              </button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
 
       {error && (
-        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-          {error}
+        <div
+          role="alert"
+          className="border-2 border-[#B91C1C] bg-[#FEF2F2] p-4 font-mono text-xs text-[#B91C1C]"
+        >
+          ERROR: {error}
         </div>
       )}
 
-      <div className="rounded-md border bg-card">
+      <div className="border-2 border-[#111110] bg-[#FFFFFF]">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Phone</TableHead>
-              <TableHead>Activity</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+            <TableRow className="border-b-2 border-[#111110] bg-[#EFECE3] hover:bg-[#EFECE3]">
+              <TableHead className="font-mono text-xs uppercase text-[#111110]">
+                Serial
+              </TableHead>
+              <TableHead className="font-mono text-xs uppercase text-[#111110]">
+                Operator Name
+              </TableHead>
+              <TableHead className="font-mono text-xs uppercase text-[#111110]">
+                Email
+              </TableHead>
+              <TableHead className="font-mono text-xs uppercase text-[#111110]">
+                Phone
+              </TableHead>
+              <TableHead className="font-mono text-xs uppercase text-[#111110]">
+                Counter Throughput
+              </TableHead>
+              <TableHead className="font-mono text-xs uppercase text-[#111110]">
+                Status
+              </TableHead>
+              <TableHead className="font-mono text-xs uppercase text-[#111110] text-right">
+                Controls
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                  Loading staff accounts...
+                <TableCell
+                  colSpan={7}
+                  className="text-center py-10 font-mono text-xs text-[#4A4843]"
+                >
+                  LOADING OPERATOR ROSTER...
                 </TableCell>
               </TableRow>
             ) : staff.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                  No staff members found.
+                <TableCell
+                  colSpan={7}
+                  className="text-center py-10 font-mono text-xs text-[#4A4843]"
+                >
+                  NO STAFF OPERATORS REGISTERED.
                 </TableCell>
               </TableRow>
             ) : (
-              staff.map((member) => (
-                <TableRow key={member.id}>
-                  <TableCell className="font-medium">{member.name}</TableCell>
-                  <TableCell>{member.email}</TableCell>
-                  <TableCell>{member.phone || '—'}</TableCell>
-                  <TableCell className="text-xs text-muted-foreground">
-                    {member.transactions_processed} txns ({member.redemptions_confirmed} redemptions)
-                  </TableCell>
-                  <TableCell>
-                    {member.active ? (
-                      <span className="text-green-600 flex items-center text-sm font-medium">
-                        <UserCheck className="mr-1 h-4 w-4" /> Active
-                      </span>
-                    ) : (
-                      <span className="text-red-600 flex items-center text-sm font-medium">
-                        <UserX className="mr-1 h-4 w-4" /> Inactive
-                      </span>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-right space-x-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => openEditDialog(member)}
-                      title="Edit Staff"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleToggleStatus(member)}
-                      title={member.active ? 'Deactivate' : 'Activate'}
-                    >
+              staff.map((member, idx) => {
+                const serial = `STF-${String(idx + 1).padStart(2, '0')}`;
+                return (
+                  <TableRow
+                    key={member.id}
+                    className="border-b border-[#D4D0C5] hover:bg-[#F8F6F0]"
+                  >
+                    <TableCell className="font-mono text-xs text-[#4A4843]">
+                      {serial}
+                    </TableCell>
+                    <TableCell className="font-semibold text-[#111110]">
+                      {member.name}
+                    </TableCell>
+                    <TableCell className="font-mono text-xs text-[#4A4843]">
+                      {member.email}
+                    </TableCell>
+                    <TableCell className="font-mono text-xs text-[#4A4843]">
+                      {member.phone || '—'}
+                    </TableCell>
+                    <TableCell className="font-mono text-xs tabular-nums text-[#111110]">
+                      {member.transactions_processed} alloc ·{' '}
+                      {member.redemptions_confirmed} redeem
+                    </TableCell>
+                    <TableCell>
                       {member.active ? (
-                        <UserX className="h-4 w-4" />
+                        <span className="inline-flex items-center gap-1 border border-[#15803D] bg-[#DCFCE7] px-2 py-0.5 font-mono text-[11px] font-semibold uppercase text-[#15803D]">
+                          <UserCheck className="h-3 w-3" /> Active
+                        </span>
                       ) : (
-                        <UserCheck className="h-4 w-4" />
+                        <span className="inline-flex items-center gap-1 border border-[#B91C1C] bg-[#FEF2F2] px-2 py-0.5 font-mono text-[11px] font-semibold uppercase text-[#B91C1C]">
+                          <UserX className="h-3 w-3" /> Suspended
+                        </span>
                       )}
-                    </Button>
-                    {member.active && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDelete(member)}
-                        title="Soft Delete"
+                    </TableCell>
+                    <TableCell className="text-right space-x-1.5">
+                      <button
+                        type="button"
+                        onClick={() => openEditDialog(member)}
+                        title="Edit Operator"
+                        className="inline-flex items-center gap-1 border border-[#111110] bg-[#FFFFFF] px-2.5 py-1 font-mono text-xs font-semibold text-[#111110] hover:bg-[#EFECE3] cursor-pointer"
                       >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))
+                        <Pencil className="h-3.5 w-3.5" />
+                        <span>Edit</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleToggleStatus(member)}
+                        title={member.active ? 'Suspend' : 'Activate'}
+                        className="inline-flex items-center gap-1 border border-[#111110] bg-[#FFFFFF] px-2.5 py-1 font-mono text-xs font-semibold text-[#111110] hover:bg-[#EFECE3] cursor-pointer"
+                      >
+                        {member.active ? 'Suspend' : 'Activate'}
+                      </button>
+                      {member.active && (
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(member)}
+                          title="Deactivate Operator"
+                          className="inline-flex items-center border border-[#B91C1C] bg-[#FEF2F2] p-1.5 text-[#B91C1C] hover:bg-[#B91C1C] hover:text-[#FFFFFF] transition-colors cursor-pointer"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                );
+              })
             )}
           </TableBody>
         </Table>
       </div>
 
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent>
+        <DialogContent className="border-2 border-[#111110] bg-[#F8F6F0] text-[#111110] rounded-none sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Edit Staff</DialogTitle>
-            <DialogDescription>
-              Update details for {editingStaff?.name}.
+            <DialogTitle className="text-2xl font-bold text-[#111110]">
+              Edit Operator Account
+            </DialogTitle>
+            <DialogDescription className="text-xs text-[#4A4843]">
+              Update contact details for {editingStaff?.name}.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="edit-name">Name</Label>
-              <Input
+            <div className="grid gap-1.5">
+              <label
+                htmlFor="edit-name"
+                className="font-mono text-xs font-semibold uppercase text-[#111110]"
+              >
+                Full Name
+              </label>
+              <input
                 id="edit-name"
+                type="text"
                 value={formState.name}
                 onChange={(e) =>
                   setFormState({ ...formState, name: e.target.value })
                 }
+                className="border border-[#111110] bg-[#FFFFFF] px-3 py-2 text-sm text-[#111110]"
               />
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="edit-email">Email</Label>
-              <Input
+            <div className="grid gap-1.5">
+              <label
+                htmlFor="edit-email"
+                className="font-mono text-xs font-semibold uppercase text-[#111110]"
+              >
+                Email Address
+              </label>
+              <input
                 id="edit-email"
                 type="email"
                 value={formState.email}
                 onChange={(e) =>
                   setFormState({ ...formState, email: e.target.value })
                 }
+                className="border border-[#111110] bg-[#FFFFFF] px-3 py-2 text-sm text-[#111110]"
               />
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="edit-phone">Phone</Label>
-              <Input
+            <div className="grid gap-1.5">
+              <label
+                htmlFor="edit-phone"
+                className="font-mono text-xs font-semibold uppercase text-[#111110]"
+              >
+                Phone
+              </label>
+              <input
                 id="edit-phone"
+                type="text"
                 value={formState.phone}
                 onChange={(e) =>
                   setFormState({ ...formState, phone: e.target.value })
                 }
+                className="border border-[#111110] bg-[#FFFFFF] px-3 py-2 font-mono text-xs text-[#111110]"
               />
             </div>
           </div>
           <DialogFooter>
-            <Button onClick={handleEdit}>Save Changes</Button>
+            <button
+              type="button"
+              onClick={handleEdit}
+              className="w-full bg-[#E02E24] py-3 px-5 font-mono text-xs font-bold uppercase text-[#F8F6F0] hover:bg-[#B82219] cursor-pointer"
+            >
+              Save Operator Changes
+            </button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

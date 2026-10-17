@@ -1,103 +1,89 @@
-# BrewPoints — Project Handoff Document
+# BrewFlow — Project Handoff Document
 
-**Date:** October 11, 2026  
+**Date:** October 17, 2026  
 **Repository:** [https://github.com/seiiba02/BrewPoints](https://github.com/seiiba02/BrewPoints) (Branch: `main`)  
-**Target Architecture:** **Supabase (PostgreSQL + Supabase Auth)** + **Next.js 16 (App Router)** + **React Native (Expo)**
+**Architecture:** Next.js 16 (App Router) + Clean Domain Service Architecture + Client-Side Reactive Simulation Engine (`LocalStorageBroadcastAdapter` via `BroadcastChannel` & `localStorage`)  
+**Design System:** **Kinetic Variable-Type Espresso Foundry** (`Fraunces` variable display serif, `Plus Jakarta Sans`, `JetBrains Mono` tabular telemetry)
 
 ---
 
 ## 1. Executive Summary
 
-This handoff document captures the current state, recent transitions, and exact next steps for continuing the **BrewPoints** digital loyalty platform on another machine or in a fresh session.
+BrewFlow is a mobile-first coffee shop online ordering and pickup platform engineered for zero-maintenance, zero-downtime portfolio evaluation.
 
-In the previous session, the project was successfully transitioned from a legacy Laravel 12 backend to a unified full-stack **Next.js 16 (App Router)** application with all domain logic, REST API route handlers (`/api/v1/*`), and web portals (Owner, Staff, Customer). 
+Following the revised client brief ([`docs/revised_client_request.md`](revised_client_request.md)) and technology stack specification ([`docs/TECH_STACK.md`](TECH_STACK.md)), the platform has been fully transitioned from a standalone QR loyalty utility to an **end-to-end coffee shop ordering and kitchen operations system**:
 
-Subsequently, the architectural decision was made to **rebuild the project from scratch using Supabase** as the database (PostgreSQL with Row Level Security) and authentication provider (Supabase Auth). The entire documentation suite in `docs/` has been refactored and pushed to GitHub to define this target architecture.
-
----
-
-## 2. What Has Been Completed
-
-### 2.1 Full-Stack Next.js 16 REST API & Portals
-- **Domain Services**:
-  - `src/lib/services/pointsCalculator.ts`: Half-up rounding, $1.00 = 1 point, $1.00–$1,000.00 spend bounds.
-  - `src/lib/services/tokenService.ts`: HS256 JWS tokens for dynamic 10m Customer Allocation QR (`brewpoints://allocate?token=...`) and single-use 15m Redemption QR (`brewpoints://redeem?token=...` with UUID v4 `jti`).
-- **REST Endpoints (`/api/v1/*`)**:
-  - `GET /api/v1/me`, `GET /api/v1/me/balance`, `GET /api/v1/me/transactions`, `POST /api/v1/me/allocation-token`
-  - `POST /api/v1/points/allocate` (atomic row locking)
-  - `GET`, `POST`, `PATCH`, `DELETE /api/v1/rewards`
-  - `POST /api/v1/redemptions`, `POST /api/v1/staff/redemptions/confirm`, `POST /api/v1/staff/scan-preview`
-  - `GET`, `POST`, `PATCH`, `DELETE /api/v1/staff`
-  - `GET /api/v1/analytics`
-- **Route Guarding**: Next.js 16 `src/proxy.ts` protecting `/dashboard`, `/staff`, `/rewards`, `/pos`, and `/wallet`.
-- **Web Portals**:
-  - Owner Admin (`/dashboard`, `/staff`, `/rewards`): Live analytics charts (Recharts), Staff CRUD, Reward CRUD.
-  - Customer Wallet (`/wallet`): Digital Loyalty Card, Milestone Progress Bar, Dynamic Allocation QR, Rewards Catalog & Redemption QR Modal, Transaction History.
-  - Staff POS (`/pos`): Unified QR Scanner, Point Allocation Form, Redemption Confirmation Flow.
-- **Git & GitHub**: Repository created and pushed to `https://github.com/seiiba02/BrewPoints`.
-
-### 2.2 Complete Documentation Refactor (`docs/`)
-All 8 project specification documents were rewritten to specify the new Supabase + Next.js + React Native stack:
-- [`docs/client.md`](client.md): Client background, business goals, and updated technical requirements.
-- [`docs/REQUIREMENTS.md`](REQUIREMENTS.md): Core business rules and Supabase architectural stack.
-- [`docs/COMBINED_IMPLEMENTATION_PLAN.md`](COMBINED_IMPLEMENTATION_PLAN.md): Single source of truth containing PostgreSQL schema, RLS policies, atomic RPC functions, and API specifications.
-- [`docs/PHASE_1_PLAN.md`](PHASE_1_PLAN.md): Supabase foundation, PostgreSQL schema, and Phase 1 API endpoints.
-- [`docs/PHASE_2_PLAN.md`](PHASE_2_PLAN.md): Reward management and atomic JWS redemption engine.
-- [`docs/PHASE_3_PLAN.md`](PHASE_3_PLAN.md): React Native (Expo) customer and staff interfaces with Supabase Auth.
-- [`docs/PHASE_4_PLAN.md`](PHASE_4_PLAN.md): Owner web portal and analytics specifications.
-- [`docs/BrewPoints_Remaining_Tasks.md`](BrewPoints_Remaining_Tasks.md): Active implementation checklist for the build from scratch.
+1. **Client-Side Reactive Simulation Engine**: Uses the browser's native `BroadcastChannel('brewflow-realtime-sync')` and `localStorage` to deliver zero-latency multi-tab synchronization. Reviewers can open `http://localhost:3000/` (Customer) and `http://localhost:3000/queue` (Kitchen KDS) in side-by-side tabs and watch incoming tickets pop onto the barista's screen in real time with an audio chime, with zero external database dependencies.
+2. **Clean Domain Service Layer**: UI components strictly consume formal TypeScript interfaces (`IOrderService`, `IMenuService`, `ILoyaltyService`, `IStoreService`), providing a clear boundary for swapping between the default `LocalStorageBroadcastAdapter` and a production `SupabaseAdapter`.
+3. **Kinetic Variable-Type Espresso Foundry Aesthetic**: Anchored by [`DESIGN.md`](../DESIGN.md) and [`.impeccable/design.json`](../.impeccable/design.json), with high-contrast display typography (`Fraunces` variable weights `320..900`), unbleached paper ground (`#F8F6F0`), carbon ink (`#111110`), signal crimson (`#E02E24`), and verified emerald (`#15803D`).
 
 ---
 
-## 3. Immediate Next Steps for the Next Session
+## 2. Completed Surfaces & Architecture
 
-When resuming on the new device:
+### 2.1 Customer Mobile-First Ordering Surface (`/`)
+* **Category Navigation**: Horizontal sticky category rail (`All Items`, `Hot Coffee`, `Cold Brew & Iced`, `Espresso Classics`, `Signature Drinks`, `Artisanal Bakery`).
+* **Catalog Grid**: High-contrast product specimen cards displaying name, origin tasting notes, base price, popularity tag, and live availability badge (`In Stock` / `86'd Sold Out`).
+* **Drink Customization Bottom Sheet** ([`DrinkCustomizerModal.tsx`](../src/components/ordering/DrinkCustomizerModal.tsx)):
+  * Interactive option selectors for Cup Size, Milk Selection (Oat, Almond, Whole, Black), Sweetness (0%, 50%, 100%), and Add-ons (Extra Shot, Salted Cold Foam, Vanilla Bean).
+  * Real-time price recalculation with dynamic `Fraunces` variable-weight numerals.
+  * Special barista instructions textarea and quantity stepper.
+* **Slide-Over Checkout Drawer** ([`CartCheckoutSheet.tsx`](../src/components/ordering/CartCheckoutSheet.tsx)):
+  * Line item customization chips and delete action.
+  * Pickup schedule selector (`Next available 10–15 min`, `In 25–30 min`, `In 45 min`).
+  * Customer contact coordinates (Name & Mobile Phone).
+  * Counter settlement notice: transparently clarifies that payment is made at pickup (Cash / Card / Tap).
+  * Supporting loyalty perk toggle: Redeem 50 points for a `$5.00 discount`.
+* **In-Place Live Order Tracker** ([`OrderLiveTracker.tsx`](../src/components/ordering/OrderLiveTracker.tsx)):
+  * Active ticket header (`#ORD-XXXX`) with pickup slot and pulsing status beacon.
+  * 5-stage animated stepper: `Ticket Received` $\rightarrow$ `Accepted by Barista` $\rightarrow$ `Brewing & Crafting` $\rightarrow$ `Ready on Counter` $\rightarrow$ `Order Completed`.
+  * Real-time cross-tab reactivity: When staff bumps the ticket in the kitchen queue, this tracker updates automatically.
 
-1. **Pull Latest Code**:
-   ```bash
-   git clone https://github.com/seiiba02/BrewPoints.git
-   cd BrewPoints
-   npm install
-   ```
+### 2.2 Kitchen Display System / Barista Queue (`/queue`)
+* **4-Column Operations Board** ([`BaristaQueuePortal.tsx`](../src/components/queue/BaristaQueuePortal.tsx)):
+  1. `Incoming Tickets`: Pending customer orders awaiting acceptance or rejection.
+  2. `In Preparation`: Accepted orders actively being crafted at the espresso bar.
+  3. `Ready on Counter`: Finished drinks staged for customer collection.
+  4. `Completed`: Audit trail of settled tickets.
+* **Web Audio Notification Chime**: Synthesized two-tone pleasant chime on incoming tickets.
+* **1-Tap Status Bump**: One click transitions tickets through the fulfillment cycle.
+* **Quick 86 / Stock Manager**: Instant modal allowing staff to mark any menu item out-of-stock; changes immediately propagate to customer menu cards across open tabs.
 
-2. **Supabase Database & Auth Setup**:
-   - Create a project on [supabase.com](https://supabase.com) (or initialize locally via `npx supabase init` and `npx supabase start`).
-   - Run the PostgreSQL schema migrations defined in [`docs/COMBINED_IMPLEMENTATION_PLAN.md`](COMBINED_IMPLEMENTATION_PLAN.md#2-database-schema--supabase-configuration):
-     - `public.profiles` (linked to `auth.users.id`)
-     - `public.loyalty_accounts`
-     - `public.rewards`
-     - `public.redemptions`
-     - `public.transactions`
-     - Configure Row Level Security (RLS) policies and atomic stored functions (`allocate_points_atomic`, `confirm_redemption_atomic`).
+### 2.3 Owner Admin Dashboard (`/dashboard`)
+* **Sales Telemetry & KPIs** ([`BrewFlowOwnerDashboard.tsx`](../src/components/dashboard/BrewFlowOwnerDashboard.tsx)):
+  * Gross Sales ($), Total Volume, Average Order Value (AOV), and In-Flight Queue counts.
+  * Best-Selling Products leaderboard ranked by quantity and revenue.
+* **Orders Audit Log**: Searchable and filterable table (`All`, `Pending`, `Accepted`, `Preparing`, `Ready`, `Completed`, `Cancelled`) with complete customer details and settlement status.
+* **Live Catalog & Pricing CRUD**:
+  * Inline price editor: Edit base price and see it update immediately on the customer menu.
+  * Stock availability switches.
+  * Add Product modal with category assignment.
+* **Portfolio Reset Utility**: 1-click `Reset Demo Seed` button restoring baseline demo orders, inventory, and loyalty points.
 
-3. **Configure Environment Variables (`.env`)**:
-   - Set Supabase credentials:
-     ```env
-     NEXT_PUBLIC_SUPABASE_URL="https://your-project-ref.supabase.co"
-     NEXT_PUBLIC_SUPABASE_ANON_KEY="your-anon-key"
-     SUPABASE_SERVICE_ROLE_KEY="your-service-role-key"
-     REDEMPTION_TOKEN_SECRET="your-jws-secret"
-     ```
-
-4. **Wire Next.js to Supabase**:
-   - Install `@supabase/supabase-js` and `@supabase/ssr`.
-   - Update `src/lib/auth/serverAuth.ts` and Route Handlers to use Supabase client / SSR sessions.
-   - Run Vitest tests (`npm test`) to verify all `/api/v1/*` routes against Supabase.
-
-5. **Scaffold React Native (Expo) Mobile App**:
-   - Follow [`docs/PHASE_3_PLAN.md`](PHASE_3_PLAN.md) to set up the Expo app for Customer Wallet and Staff POS Scanner using `expo-camera`, `react-native-qrcode-svg`, and `expo-secure-store`.
+### 2.4 Navigation & App Shell
+* **Global Navigation** ([`AppNav.tsx`](../src/components/layout/AppNav.tsx) & [`AppNavLinks.tsx`](../src/components/layout/AppNavLinks.tsx)):
+  * Top carbon-ink header on Desktop (`1440px`) with live status telemetry badge (`STORE SYNC: BROADCAST BUS · $1 = 1 PT`).
+  * Fixed bottom thumb-zone bar on Mobile (`390px`) linking `Order Menu`, `Kitchen Queue`, `Owner Admin`, and `Loyalty Pass`.
 
 ---
 
-## 4. Key Reference Documents
-- **Master Plan:** [`docs/COMBINED_IMPLEMENTATION_PLAN.md`](COMBINED_IMPLEMENTATION_PLAN.md)
-- **Checklist:** [`docs/BrewPoints_Remaining_Tasks.md`](BrewPoints_Remaining_Tasks.md)
-- **Database Schema:** [`docs/COMBINED_IMPLEMENTATION_PLAN.md`](COMBINED_IMPLEMENTATION_PLAN.md#2-database-schema--supabase-configuration)
-- **Mobile Spec:** [`docs/PHASE_3_PLAN.md`](PHASE_3_PLAN.md)
+## 3. Verification & Quality Gates
+
+* **TypeScript Compilation**: `npx tsc --noEmit` $\rightarrow$ **0 errors**.
+* **Vitest Domain Suite**: `npx vitest run src/__tests__/brewflow.test.ts` $\rightarrow$ **10/10 passed** (9ms execution time).
+* **Impeccable Design Audit**: `.agents\skills\impeccable\scripts\impeccable.cmd detect --json` $\rightarrow$ **0 violations** (`[]`) across all 8 UI files.
+* **Dual-Viewport Layout**: Verified responsive design at `390px` mobile (thumb-zone navigation, bottom sheets, sticky cart pill) and `1440px` desktop (side-by-side grids, high-density KDS).
 
 ---
 
-## 5. Suggested Skills for Next Agent
-- **`tdd`**: Test-driven development for the Supabase SQL migrations and Next.js Route Handlers.
-- **`review`**: Two-axis spec & standards review against [`docs/COMBINED_IMPLEMENTATION_PLAN.md`](COMBINED_IMPLEMENTATION_PLAN.md).
-- **`impeccable`**: Design and visual polish for the Next.js Web Admin Portal and React Native mobile screens.
+## 4. How to Demonstrate in a Portfolio Review
+
+1. Start the development server: `npm run dev`.
+2. Open **Window 1** at `http://localhost:3000/` (Customer Ordering).
+3. Open **Window 2** at `http://localhost:3000/queue` (Kitchen Display System).
+4. In Window 1, select a drink (e.g., *Sea Salt Vermont Maple Latte*), customize size and oat milk, and submit the order.
+5. In Window 2, listen to the audio chime and watch the new ticket (`#ORD-XXXX`) appear under `Incoming Tickets`.
+6. In Window 2, tap `Accept Ticket` $\rightarrow$ `Mark Ready on Counter`.
+7. Notice Window 1's live tracker immediately progresses to green with the banner *"Your order is freshly staged at the counter pickup shelf!"*.
+8. In Window 2, open `86 / Stock Manager`, toggle an item to `86'd`, and watch it instantly disable in Window 1.
+9. Visit `http://localhost:3000/dashboard` to inspect the updated revenue, order volume, and AOV.

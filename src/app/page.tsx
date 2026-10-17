@@ -1,22 +1,18 @@
-import { redirect } from 'next/navigation';
-import { resolveRequestUser } from '@/lib/auth/serverAuth';
+import { CustomerOrderingApp } from '@/components/ordering/CustomerOrderingApp';
+import {
+  INITIAL_CATEGORIES,
+  INITIAL_MENU_ITEMS,
+  INITIAL_LOYALTY,
+} from '@/lib/storage/seedData';
 
 export const dynamic = 'force-dynamic';
 
-export default async function HomePage() {
-  const user = await resolveRequestUser();
-
-  if (!user) {
-    redirect('/login');
-  }
-
-  if (user.role === 'owner') {
-    redirect('/dashboard');
-  }
-
-  if (user.role === 'staff') {
-    redirect('/pos');
-  }
-
-  redirect('/wallet');
+export default function HomePage() {
+  return (
+    <CustomerOrderingApp
+      initialCategories={INITIAL_CATEGORIES}
+      initialMenuItems={INITIAL_MENU_ITEMS}
+      initialLoyalty={INITIAL_LOYALTY}
+    />
+  );
 }

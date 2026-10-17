@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>BrewPoints — Split-Flap Concourse Counter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 1440px; height: 900px; overflow: hidden;
+    background: #F5F3EE; color: #141413;
+    font-family: 'Inter', sans-serif;
+    display: flex; flex-direction: column;
+  }
+  .board-header {
+    background: #141413; color: #F5F3EE; padding: 20px 32px;
+    border-bottom: 4px solid #D97706;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .flap-row { display: flex; gap: 6px; align-items: center; }
+  .flap {
+    background: #242422; color: #FFFFFF; font-family: 'Barlow Condensed', sans-serif;
+    font-size: 28px; font-weight: 700; padding: 6px 12px; border-radius: 3px;
+    border-bottom: 2px solid #000; letter-spacing: 0.08em; text-transform: uppercase;
+  }
+  .flap.amber { background: #D97706; color: #141413; }
+  .flap.green { background: #16A34A; color: #FFFFFF; }
+  .layout { flex: 1; display: grid; grid-template-columns: 240px 1fr 380px; }
+  .rail { background: #1F1E1D; color: #E5E2DC; padding: 24px 18px; display: flex; flex-direction: column; gap: 10px; }
+  .nav-btn { padding: 12px; border-radius: 4px; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .nav-btn.active { background: #D97706; color: #141413; }
+  .center { padding: 26px 32px; display: flex; flex-direction: column; gap: 20px; }
+  .concourse-board {
+    background: #141413; color: #F5F3EE; border-radius: 8px; padding: 20px;
+  }
+  .board-row {
+    display: grid; grid-template-columns: 90px 1.4fr 1fr 110px 110px;
+    padding: 12px 10px; border-bottom: 1px solid #2E2D2B;
+    font-family: 'IBM Plex Mono', monospace; font-size: 13px; align-items: center;
+  }
+  .lamp { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; }
+  .lamp.green { background: #16A34A; box-shadow: 0 0 8px #16A34A; }
+  .lamp.amber { background: #D97706; box-shadow: 0 0 8px #D97706; }
+  .pos-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .card { background: #FFFFFF; border: 2px solid #141413; border-radius: 6px; padding: 20px; }
+  .btn { background: #141413; color: #FFFFFF; border: none; padding: 14px; width: 100%; font-family: 'IBM Plex Mono', monospace; font-weight: 700; font-size: 14px; margin-top: 12px; }
+</style>
+</head>
+<body>
+  <header class="board-header">
+    <div class="flap-row">
+      <span class="flap">BREWPOINTS</span>
+      <span class="flap amber">POS TERMINAL 01</span>
+      <span class="flap">USD $1 = 1 PT</span>
+    </div>
+    <div class="flap-row">
+      <span class="flap green">SCAN CLOCK: 03.8S</span>
+      <span class="flap">ISSUED TODAY: 1,480 PTS</span>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="rail">
+      <div class="nav-btn active">01 · Counter Board</div>
+      <div class="nav-btn">02 · Analytics Concourse</div>
+      <div class="nav-btn">03 · Reward Departures</div>
+      <div class="nav-btn">04 · Staff Roster</div>
+    </aside>
+
+    <main class="center">
+      <div class="pos-grid">
+        <div class="card">
+          <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:#D97706;">GATE A · POINT ALLOCATION SCAN</div>
+          <div style="font-size:20px;font-weight:700;margin:8px 0;">Maya Lin · Balance 145 PTS</div>
+          <div style="background:#141413;color:#F5F3EE;padding:14px;font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:700;">
+            SPEND: $18.50 → +19 PTS
+          </div>
+          <button class="btn" style="background:#D97706;color:#141413;">DISPATCH +19 POINTS NOW</button>
+        </div>
+        <div class="card">
+          <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:#16A34A;">GATE B · REDEMPTION VERIFICATION</div>
+          <div style="font-size:20px;font-weight:700;margin:8px 0;">Single-Origin Cortado (-100 PTS)</div>
+          <div style="background:#141413;color:#16A34A;padding:14px;font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:700;">
+            JWS VALID · TTL 14M 12S · NONCE OK
+          </div>
+          <button class="btn" style="background:#16A34A;">CONFIRM REDEMPTION & DEDUCT</button>
+        </div>
+      </div>
+
+      <section class="concourse-board">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;letter-spacing:0.06em;margin-bottom:10px;color:#D97706;">
+          LIVE TRANSACTION DEPARTURE BOARD
+        </div>
+        <div class="board-row" style="color:#9CA3AF;font-size:11px;">
+          <span>TIME</span><span>MEMBER</span><span>EVENT</span><span>AMOUNT</span><span>DELTA</span>
+        </div>
+        <div class="board-row">
+          <span>09:42:11</span><span><span class="lamp green"></span>MAYA LIN</span><span>ALLOCATE SPEND</span><span>$18.50</span><span style="color:#16A34A;">+19 PTS</span>
+        </div>
+        <div class="board-row">
+          <span>09:41:04</span><span><span class="lamp amber"></span>KENJI SATO</span><span>REDEEM CORTADO</span><span>RWD-02</span><span style="color:#D97706;">-100 PTS</span>
+        </div>
+        <div class="board-row">
+          <span>09:38:49</span><span><span class="lamp green"></span>ELENA ROSTOVA</span><span>ALLOCATE SPEND</span><span>$12.25</span><span style="color:#16A34A;">+12 PTS</span>
+        </div>
+      </section>
+    </main>
+
+    <aside style="background:#E5E2DC;padding:24px;border-left:2px solid #141413;">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;margin-bottom:12px;">MOBILE BOARD · 390PX WALLET</div>
+      <div style="background:#141413;color:#F5F3EE;border-radius:10px;padding:20px;">
+        <div class="flap-row" style="justify-content:space-between;margin-bottom:16px;">
+          <span class="flap" style="font-size:20px;">MAYA LIN</span>
+          <span class="flap amber" style="font-size:24px;">164 PTS</span>
+        </div>
+        <div style="background:#F5F3EE;color:#141413;padding:18px;border-radius:6px;text-align:center;">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;">DYNAMIC QR BOARDING PASS</div>
+          <div style="width:130px;height:130px;margin:12px auto;border:3px solid #141413;background:repeating-linear-gradient(45deg,#141413 0 8px,#F5F3EE 8px 16px);"></div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#D97706;font-weight:700;">EXPIRES IN 09:42</div>
+        </div>
+        <button class="btn" style="background:#16A34A;margin-top:16px;">CLAIM REWARD PASS (100 PTS)</button>
+      </div>
+    </aside>
+  </div>
+</body>
+</html>

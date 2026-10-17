@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>BrewPoints — Kissaten Ticket Book (Kōhī Ken)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=IBM+Plex+Mono:wght@500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 1440px; height: 900px; overflow: hidden;
+    background: #F6F1E7; color: #1C1410;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    display: grid; grid-template-columns: 248px 1fr 390px;
+  }
+  .rail {
+    background: #1C1410; color: #F6F1E7; padding: 28px 22px;
+    display: flex; flex-direction: column; justify-content: space-between;
+    border-right: 2px solid #C84B31;
+  }
+  .brand { font-family: 'Fraunces', serif; font-size: 26px; letter-spacing: -0.02em; display: flex; align-items: center; gap: 10px; }
+  .stamp {
+    background: #C84B31; color: #F6F1E7; font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; padding: 3px 7px; border-radius: 3px; font-weight: 600;
+  }
+  .nav { margin-top: 32px; display: flex; flex-direction: column; gap: 8px; }
+  .nav-item {
+    padding: 11px 14px; border-radius: 6px; font-size: 14px; font-weight: 600;
+    display: flex; justify-content: space-between; align-items: center; color: #D9CBB5;
+  }
+  .nav-item.active { background: #2D211B; color: #F6F1E7; border-left: 3px solid #C84B31; }
+  .main { padding: 28px 32px; display: flex; flex-direction: column; gap: 22px; border-right: 2px dashed #D9CBB5; }
+  .topbar { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1.5px solid #D9CBB5; padding-bottom: 16px; }
+  .h1 { font-family: 'Fraunces', serif; font-size: 30px; font-weight: 700; color: #1C1410; }
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+  .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .kpi {
+    background: #FDFBF7; border: 1.5px solid #D9CBB5; border-radius: 8px; padding: 18px;
+    position: relative;
+  }
+  .kpi-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: #6E5D4F; font-weight: 600; }
+  .kpi-val { font-family: 'Fraunces', serif; font-size: 34px; font-weight: 700; margin: 6px 0 8px; }
+  .kpi-proof { font-size: 12px; color: #2A5C43; border-top: 1px dashed #D9CBB5; padding-top: 8px; font-family: 'IBM Plex Mono', monospace; }
+  .pos-box {
+    background: #FDFBF7; border: 1.5px solid #1C1410; border-radius: 10px; padding: 22px;
+    display: grid; grid-template-columns: 1.1fr 1fr; gap: 22px;
+  }
+  .section-title { font-family: 'Fraunces', serif; font-size: 20px; margin-bottom: 10px; display: flex; justify-content: space-between; }
+  .input-row {
+    background: #F6F1E7; border: 1.5px solid #1C1410; border-radius: 6px; padding: 14px;
+    font-family: 'IBM Plex Mono', monospace; font-size: 24px; font-weight: 600; margin: 10px 0;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .btn-primary {
+    background: #C84B31; color: #FDFBF7; border: none; border-radius: 6px; padding: 14px 18px;
+    font-weight: 700; font-size: 15px; width: 100%; text-align: center; letter-spacing: 0.02em;
+  }
+  .ledger { background: #FDFBF7; border: 1.5px solid #D9CBB5; border-radius: 8px; padding: 18px; flex: 1; }
+  .row { display: grid; grid-template-columns: 90px 1.3fr 1fr 90px 90px; padding: 10px 0; border-bottom: 1px dashed #D9CBB5; font-size: 13px; align-items: center; }
+  .row.head { font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: #6E5D4F; border-bottom: 1.5px solid #1C1410; }
+  .wallet-preview { background: #EFE7D6; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+  .ticket {
+    background: #FDFBF7; border: 2px solid #1C1410; border-radius: 12px; overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  .ticket-head { background: #1C1410; color: #F6F1E7; padding: 16px 18px; display: flex; justify-content: space-between; align-items: center; }
+  .ticket-body { padding: 18px; }
+  .stubs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 12px 0; }
+  .stub {
+    border: 1.5px dashed #B5A48B; border-radius: 4px; padding: 8px 4px; text-align: center;
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600;
+  }
+  .stub.punched { background: #2A5C43; color: #FDFBF7; border-style: solid; border-color: #1C1410; }
+  .qr-well {
+    border-top: 2px dashed #1C1410; padding: 18px; text-align: center; background: #FAF6EE;
+  }
+  .qr-box {
+    width: 136px; height: 136px; margin: 8px auto; border: 3px solid #1C1410;
+    background: repeating-linear-gradient(45deg, #1C1410 0 8px, #FAF6EE 8px 16px);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .qr-seal { background: #C84B31; color: #fff; padding: 4px 8px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 700; }
+</style>
+</head>
+<body>
+  <aside class="rail">
+    <div>
+      <div class="brand">BrewPoints <span class="stamp">珈琲券</span></div>
+      <div class="nav">
+        <div class="nav-item active"><span>Counter POS & Scan</span><span class="mono">01</span></div>
+        <div class="nav-item"><span>Owner Analytics</span><span class="mono">02</span></div>
+        <div class="nav-item"><span>Reward Catalog</span><span class="mono">03</span></div>
+        <div class="nav-item"><span>Barista Roster</span><span class="mono">04</span></div>
+      </div>
+    </div>
+    <div style="border-top:1px solid #3A2C24;padding-top:14px;font-size:12px;color:#D9CBB5;">
+      <div class="mono">RATE: $1.00 = 1 PT</div>
+      <div style="margin-top:4px;color:#9C8B7A;">Half-Up Rounding · JWS Active</div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div>
+        <div class="mono" style="font-size:12px;color:#C84B31;font-weight:600;">STATION 01 · MORNING ESPRESSO SERVICE</div>
+        <h1 class="h1">Counter Ledger & Sub-10s QR Terminal</h1>
+      </div>
+      <div class="mono" style="font-size:13px;background:#1C1410;color:#F6F1E7;padding:8px 12px;border-radius:6px;">
+        AVG SCAN TIME: 4.2s · LIVE
+      </div>
+    </header>
+
+    <section class="kpis">
+      <div class="kpi">
+        <div class="kpi-label">Points Issued Today</div>
+        <div class="kpi-val">1,480 <span style="font-size:16px;font-weight:500;">pts</span></div>
+        <div class="kpi-proof">+18.4% vs Tue · $1,480.00 verified spend</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Confirmed Redemptions</div>
+        <div class="kpi-val">34 <span style="font-size:16px;font-weight:500;">tickets</span></div>
+        <div class="kpi-proof">RWD-02 Pour-Over leads (14 claimed)</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Active Member Passes</div>
+        <div class="kpi-val">219 <span style="font-size:16px;font-weight:500;">books</span></div>
+        <div class="kpi-proof">99.4% JWS anti-replay verification</div>
+      </div>
+    </section>
+
+    <section class="pos-box">
+      <div>
+        <div class="section-title"><span>Verified Customer Scan</span><span class="stamp">ALLOCATE</span></div>
+        <div style="font-size:13px;color:#5C4D42;">Customer: <strong>Maya Lin</strong> · <span class="mono">CUS-0194</span> · Balance: <strong>145 pts</strong></div>
+        <div class="input-row">
+          <span style="font-size:14px;color:#6E5D4F;">PURCHASE ($ USD)</span>
+          <span>$18.50 → +19 PTS</span>
+        </div>
+        <button class="btn-primary">STAMP & ALLOCATE +19 POINTS (ENTER)</button>
+      </div>
+      <div style="border-left:1.5px dashed #D9CBB5;padding-left:20px;display:flex;flex-direction:column;justify-content:space-between;">
+        <div class="section-title"><span>Redemption Queue</span><span class="mono" style="font-size:12px;color:#2A5C43;">1 READY</span></div>
+        <div style="background:#F6F1E7;border:1.5px solid #2A5C43;border-radius:6px;padding:12px;">
+          <div class="mono" style="font-size:11px;color:#2A5C43;font-weight:600;">RWD-01 · JTI VERIFIED · EXP 14:12</div>
+          <div style="font-weight:700;font-size:16px;margin:4px 0;">Single-Origin Cortado (100 pts)</div>
+          <div style="font-size:12px;color:#5C4D42;">Deducts 100 pts upon barista stamp confirmation</div>
+        </div>
+        <button class="btn-primary" style="background:#2A5C43;">CONFIRM & PUNCH TICKET (-100 PTS)</button>
+      </div>
+    </section>
+
+    <section class="ledger">
+      <div class="row head">
+        <span>Serial</span><span>Customer</span><span>Action / Ticket</span><span>Spend</span><span>Points</span>
+      </div>
+      <div class="row"><span class="mono">TX-1048</span><span>Maya Lin</span><span>Purchase Stamp</span><span class="mono">$18.50</span><span class="mono" style="color:#2A5C43;font-weight:700;">+19 pts</span></div>
+      <div class="row"><span class="mono">TX-1047</span><span>Kenji Sato</span><span>RWD-01 Cortado Redeemed</span><span class="mono">—</span><span class="mono" style="color:#C84B31;font-weight:700;">-100 pts</span></div>
+      <div class="row"><span class="mono">TX-1046</span><span>Elena Rostova</span><span>Purchase Stamp</span><span class="mono">$12.25</span><span class="mono" style="color:#2A5C43;font-weight:700;">+12 pts</span></div>
+    </section>
+  </main>
+
+  <aside class="wallet-preview">
+    <div class="mono" style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#6E5D4F;font-weight:600;">
+      Mobile Companion · 390px Customer Wallet
+    </div>
+    <div class="ticket">
+      <div class="ticket-head">
+        <div>
+          <div class="mono" style="font-size:10px;color:#D9CBB5;">KŌHĪ KEN NO. 0194</div>
+          <div style="font-family:'Fraunces',serif;font-size:20px;">Maya Lin</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-family:'Fraunces',serif;font-size:28px;color:#F6F1E7;">164 <span style="font-size:13px;">pts</span></div>
+          <div class="mono" style="font-size:10px;color:#C84B31;background:#F6F1E7;padding:2px 6px;border-radius:3px;">1 REWARD READY</div>
+        </div>
+      </div>
+      <div class="ticket-body">
+        <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:600;">
+          <span>10-Stub Ticket Progress (Free Pour-Over)</span>
+          <span class="mono">164 / 200 PTS</span>
+        </div>
+        <div class="stubs">
+          <div class="stub punched">20 ✓</div><div class="stub punched">40 ✓</div><div class="stub punched">60 ✓</div><div class="stub punched">80 ✓</div><div class="stub punched">100 ✓</div>
+          <div class="stub punched">120 ✓</div><div class="stub punched">140 ✓</div><div class="stub punched">160 ✓</div><div class="stub">180</div><div class="stub">200</div>
+        </div>
+      </div>
+      <div class="qr-well">
+        <div class="mono" style="font-size:11px;font-weight:600;color:#1C1410;">brewpoints://allocate?token=eyJ...</div>
+        <div class="qr-box"><span class="qr-seal">TTL 09:42</span></div>
+        <div style="font-size:12px;color:#5C4D42;margin-bottom:12px;">Present at espresso bar · Auto-rotates every 10m</div>
+        <button class="btn-primary">SWITCH TO REWARD REDEMPTION QR</button>
+      </div>
+    </div>
+  </aside>
+</body>
+</html>
