@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useTransition } from 'react';
+import Image from 'next/image';
 import {
   MenuCategory,
   MenuItem,
@@ -16,8 +17,19 @@ import {
 import { DrinkCustomizerModal } from './DrinkCustomizerModal';
 import { CartCheckoutSheet } from './CartCheckoutSheet';
 import { OrderLiveTracker } from './OrderLiveTracker';
-import { ShoppingBag, Sparkles, Check, AlertCircle } from 'lucide-react';
-import { computeSpecimenAxes } from '@/lib/design-tokens';
+import { AppNav } from '@/components/layout/AppNav';
+import {
+  Coffee,
+  ShoppingBag,
+  Clock,
+  Sparkles,
+  Plus,
+  ChevronRight,
+  CupSoda,
+  GlassWater,
+  Flame,
+  Search,
+} from 'lucide-react';
 
 interface CustomerOrderingAppProps {
   initialCategories: MenuCategory[];
@@ -39,6 +51,7 @@ export function CustomerOrderingApp({
   const [customizingItem, setCustomizingItem] = useState<MenuItem | null>(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [activeOrder, setActiveOrder] = useState<Order | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const [, startTransition] = useTransition();
 
   // Load from local storage on client mount and subscribe to real-time events
@@ -54,52 +67,21 @@ export function CustomerOrderingApp({
       setMenuItems(items);
       setLoyaltyAccount(loyalty);
 
-      // Restore active order if one exists
       if (orders.length > 0) {
         setActiveOrder(orders[0]);
       }
     }
     loadClientData();
 
-    // Subscribe to cross-tab BroadcastChannel events
     const unsubscribe = orderService.subscribe((event) => {
       startTransition(async () => {
-        if (event.type === 'MENU_ITEM_TOGGLED') {
-          setMenuItems((prev) =>
-            prev.map((item) =>
-              item.id === event.itemId
-                ? { ...item, isAvailable: event.isAvailable }
-                : item
-            )
-          );
-        } else if (event.type === 'MENU_ITEM_UPDATED') {
-          setMenuItems((prev) => {
-            const index = prev.findIndex((i) => i.id === event.item.id);
-            if (index >= 0) {
-              const next = [...prev];
-              next[index] = event.item;
-              return next;
-            }
-            return [...prev, event.item];
-          });
-        } else if (event.type === 'ORDER_STATUS_CHANGED') {
+        if (event.type === 'ORDER_STATUS_CHANGED') {
           setActiveOrder((current) => {
             if (current && current.id === event.orderId) {
               return event.order;
             }
             return current;
           });
-        } else if (event.type === 'STORE_RESET') {
-          const [cats, items, loyalty, activeOrders] = await Promise.all([
-            menuService.getCategories(),
-            menuService.getMenuItems(),
-            loyaltyService.getLoyaltyAccount(),
-            orderService.getOrders('active'),
-          ]);
-          setCategories(cats);
-          setMenuItems(items);
-          setLoyaltyAccount(loyalty);
-          setActiveOrder(activeOrders[0] || null);
         }
       });
     });
@@ -109,16 +91,22 @@ export function CustomerOrderingApp({
     };
   }, []);
 
-  // Filter items by category
-  const displayedItems =
-    activeCategorySlug === 'all'
-      ? menuItems
-      : menuItems.filter((i) => i.categorySlug === activeCategorySlug);
+  // Filter items by category & search
+  const filteredItems = menuItems.filter((item) => {
+    const matchesCategory =
+      activeCategorySlug === 'all' || item.categorySlug === activeCategorySlug;
+    const matchesSearch =
+      !searchQuery.trim() ||
+      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.description.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
 
-  // Cart calculations
+  // Popular items for the showcase top carousel
+  const popularItems = menuItems.filter((i) => i.isPopular);
+
+  // Cart operations
   const cartItemCount = cart.reduce((count, item) => count + item.quantity, 0);
-  const cartSubtotal = cart.reduce((sum, item) => sum + item.lineTotal, 0);
-  const cartFontAxes = computeSpecimenAxes(cartSubtotal, 40);
 
   const handleAddToCart = (newItem: CartItem) => {
     setCart((prev) => [...prev, newItem]);
@@ -129,6 +117,22 @@ export function CustomerOrderingApp({
     setCart((prev) => prev.filter((item) => item.id !== cartItemId));
   };
 
+  const handleUpdateQuantity = (cartItemId: string, newQty: number) => {
+    setCart((prev) =>
+      prev.map((item) => {
+        if (item.id === cartItemId) {
+          const quantity = Math.max(1, newQty);
+          return {
+            ...item,
+            quantity,
+            lineTotal: item.unitPrice * quantity,
+          };
+        }
+        return item;
+      })
+    );
+  };
+
   const handleClearCart = () => {
     setCart([]);
   };
@@ -136,205 +140,308 @@ export function CustomerOrderingApp({
   const handleOrderPlaced = async (newOrder: Order) => {
     setActiveOrder(newOrder);
     setIsCartOpen(false);
-    // Refresh loyalty balance
     const updatedLoyalty = await loyaltyService.getLoyaltyAccount();
     setLoyaltyAccount(updatedLoyalty);
   };
 
-  return (
-    <div className="min-h-screen bg-[#F8F6F0] text-[#111110] pb-28 md:pb-20">
-      {/* Editorial Hero Header */}
-      <section className="border-b border-[#D4D0C5] bg-[#FFFFFF] px-4 md:px-8 py-8 md:py-12">
-        <div className="mx-auto max-w-[1440px]">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2 mb-2 font-mono text-xs text-[#4A4843]">
-                <span className="h-2 w-2 bg-[#E02E24] inline-block" />
-                <span>ROASTERY & BOTANICAL BAR</span>
-                <span aria-hidden="true">·</span>
-                <span>IN-STORE COUNTER PICKUP</span>
-              </div>
-              <h1
-                className="text-3xl md:text-5xl font-bold tracking-tight text-[#111110]"
-                style={{ fontFamily: 'var(--font-fraunces), Georgia, serif' }}
-              >
-                BrewFlow Espresso Foundry
-              </h1>
-              <p className="mt-2 text-sm text-[#4A4843] max-w-xl leading-relaxed">
-                Single-origin pour-overs, nitro cold taps, and artisanal viennoiserie. Place your order online, skip the wait, and settle at the counter upon collection.
-              </p>
-            </div>
+  const getCategoryIcon = (slug: string) => {
+    switch (slug) {
+      case 'coffee':
+        return <Coffee className="h-4 w-4" />;
+      case 'non-coffee':
+        return <CupSoda className="h-4 w-4" />;
+      case 'frappe':
+        return <GlassWater className="h-4 w-4" />;
+      case 'tea':
+        return <Flame className="h-4 w-4" />;
+      default:
+        return <Coffee className="h-4 w-4" />;
+    }
+  };
 
-            {/* Loyalty Pill Banner */}
-            <div className="flex items-center gap-3 border border-[#111110] bg-[#F8F6F0] p-3 text-xs font-mono">
-              <Sparkles className="h-4 w-4 text-[#E02E24]" />
-              <div>
-                <span className="text-[#4A4843] block">YOUR LOYALTY BALANCE</span>
-                <span className="text-sm font-bold text-[#111110]">
-                  {loyaltyAccount.balance} PTS
-                </span>
-              </div>
-              <span className="text-xs text-[#15803D] font-bold border-l border-[#D4D0C5] pl-3">
-                $1.00 = 1 PT
-              </span>
-            </div>
-          </div>
+  return (
+    <div className="min-h-screen bg-[#F8F6F0] text-[#111827]">
+      {/* Sub-header notification if there's an active order */}
+      {activeOrder && activeOrder.status !== 'completed' && activeOrder.status !== 'cancelled' && (
+        <div className="mx-auto max-w-[1440px] px-4 sm:px-6 lg:px-8 pt-4">
+          <OrderLiveTracker
+            order={activeOrder}
+            onDismiss={() => setActiveOrder(null)}
+          />
         </div>
-      </section>
+      )}
 
       {/* Main Container */}
-      <main className="mx-auto max-w-[1440px] px-4 md:px-8 py-6 space-y-8">
-        {/* Active Order Live Tracker (if active order exists) */}
-        {activeOrder && activeOrder.status !== 'completed' && activeOrder.status !== 'cancelled' && (
-          <div className="mb-6">
-            <OrderLiveTracker
-              order={activeOrder}
-              onDismiss={() => setActiveOrder(null)}
-            />
-          </div>
-        )}
+      <main className="mx-auto max-w-[1440px] px-4 sm:px-6 lg:px-8 py-6 space-y-10">
+        {/* ========================================================= */}
+        {/* HERO SECTION: "Good Coffee Better Days" (Showcase Screen 1) */}
+        {/* ========================================================= */}
+        <section className="relative overflow-hidden rounded-3xl bg-[#1C1815] text-white shadow-xl">
+          {/* Subtle Ambient Radial Glow */}
+          <div className="absolute top-0 right-1/4 h-96 w-96 rounded-full bg-[#3D2619]/40 blur-3xl pointer-events-none" />
 
-        {/* Sticky Category Tab Navigation */}
-        <div className="sticky top-16 z-30 -mx-4 md:-mx-8 px-4 md:px-8 py-3 bg-[#F8F6F0]/95 backdrop-blur-xs border-b border-[#D4D0C5]">
-          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
-            <button
-              onClick={() => setActiveCategorySlug('all')}
-              className={`px-4 py-2 text-xs font-mono uppercase tracking-wider font-semibold whitespace-nowrap transition-colors cursor-pointer border ${
-                activeCategorySlug === 'all'
-                  ? 'border-[#111110] bg-[#111110] text-[#F8F6F0]'
-                  : 'border-[#D4D0C5] bg-[#FFFFFF] text-[#4A4843] hover:border-[#111110] hover:text-[#111110]'
-              }`}
-            >
-              All Items ({menuItems.length})
-            </button>
-            {categories.map((cat) => {
-              const count = menuItems.filter((i) => i.categorySlug === cat.slug).length;
-              const isActive = activeCategorySlug === cat.slug;
+          <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 items-center gap-8 px-6 py-10 sm:px-12 sm:py-16">
+            {/* Left Content */}
+            <div className="lg:col-span-7 space-y-6">
+              <div className="space-y-2">
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-[1.1]">
+                  Good Coffee
+                  <br />
+                  <span className="text-[#F3EFEA]">Better Days</span>
+                </h1>
+                <p className="text-sm sm:text-base text-[#D1D5DB] max-w-md font-normal leading-relaxed pt-1">
+                  Freshly brewed. Made for you.
+                </p>
+              </div>
 
-              return (
-                <button
-                  key={cat.id}
-                  onClick={() => setActiveCategorySlug(cat.slug)}
-                  className={`px-4 py-2 text-xs font-mono uppercase tracking-wider font-semibold whitespace-nowrap transition-colors cursor-pointer border ${
-                    isActive
-                      ? 'border-[#111110] bg-[#111110] text-[#F8F6F0]'
-                      : 'border-[#D4D0C5] bg-[#FFFFFF] text-[#4A4843] hover:border-[#111110] hover:text-[#111110]'
-                  }`}
+              <div>
+                <a
+                  href="#menu"
+                  className="inline-flex items-center justify-center px-8 py-3.5 rounded-full bg-[#FFFFFF] text-[#111827] text-sm font-semibold hover:bg-[#F3EFEA] transition-all shadow-md active:scale-95 cursor-pointer"
                 >
-                  {cat.name} ({count})
-                </button>
-              );
-            })}
-          </div>
-        </div>
+                  Order Now
+                </a>
+              </div>
+            </div>
 
-        {/* Product Catalog Grid */}
-        <section aria-label="Menu Catalog">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {displayedItems.map((item) => (
+            {/* Right Product Image Showcase */}
+            <div className="lg:col-span-5 flex justify-center lg:justify-end">
+              <div className="relative h-64 sm:h-80 w-64 sm:w-80 rounded-3xl overflow-hidden shadow-2xl border-4 border-white/10 group">
+                <Image
+                  src="/images/hero-coffee.jpg"
+                  alt="BrewFlow Iced Specialty Coffee"
+                  fill
+                  priority
+                  className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  sizes="(max-width: 768px) 256px, 320px"
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ========================================================= */}
+        {/* 3-PILL FEATURE STRIP (Order · Pickup · Earn Points)         */}
+        {/* ========================================================= */}
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="flex items-center gap-4 p-5 rounded-2xl bg-[#FFFFFF] border border-[#E5E7EB] shadow-xs">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#E8F3EE] text-[#133E2B]">
+              <Coffee className="h-6 w-6" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-[#111827]">Order</h3>
+              <p className="text-xs text-[#6B7280]">Your Favorites</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4 p-5 rounded-2xl bg-[#FFFFFF] border border-[#E5E7EB] shadow-xs">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#E8F3EE] text-[#133E2B]">
+              <Clock className="h-6 w-6" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-[#111827]">Pickup</h3>
+              <p className="text-xs text-[#6B7280]">At Your Convenience</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4 p-5 rounded-2xl bg-[#FFFFFF] border border-[#E5E7EB] shadow-xs">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#E8F3EE] text-[#133E2B]">
+              <Sparkles className="h-6 w-6" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-[#111827]">Earn Points</h3>
+              <p className="text-xs text-[#6B7280]">With Every Purchase</p>
+            </div>
+          </div>
+        </section>
+
+        {/* ========================================================= */}
+        {/* POPULAR PICKS SECTION (Showcase Screen 1)                 */}
+        {/* ========================================================= */}
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#111827]">
+              Popular Picks
+            </h2>
+            <a
+              href="#menu"
+              className="flex items-center gap-1 text-xs font-semibold text-[#133E2B] hover:underline cursor-pointer"
+            >
+              <span>View All</span>
+              <ChevronRight className="h-3.5 w-3.5" />
+            </a>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {popularItems.slice(0, 4).map((item) => (
               <div
                 key={item.id}
-                className={`flex flex-col justify-between border bg-[#FFFFFF] p-5 transition-colors ${
-                  item.isAvailable
-                    ? 'border-[#D4D0C5] hover:border-[#111110]'
-                    : 'border-[#EFECE3] bg-[#F8F6F0] opacity-60'
-                }`}
+                className="group flex flex-col justify-between rounded-3xl bg-[#FFFFFF] p-3.5 border border-[#E5E7EB] shadow-xs hover:shadow-md transition-all"
               >
                 <div>
-                  <div className="flex items-start justify-between gap-3 mb-2">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="font-mono text-xs uppercase px-1.5 py-0.5 bg-[#EFECE3] text-[#4A4843] border border-[#D4D0C5]">
-                        {item.categorySlug.replace('-', ' ')}
-                      </span>
-                      {item.isPopular && item.isAvailable && (
-                        <span className="font-mono text-xs uppercase px-1.5 py-0.5 bg-[#DCFCE7] text-[#15803D] font-bold border border-[#15803D]">
-                          Popular
-                        </span>
-                      )}
-                      {!item.isAvailable && (
-                        <span className="font-mono text-xs uppercase px-1.5 py-0.5 bg-[#FDF2F2] text-[#E02E24] font-bold border border-[#E02E24] flex items-center gap-1">
-                          <AlertCircle className="h-3 w-3" />
-                          Sold Out (86&apos;d)
-                        </span>
-                      )}
-                    </div>
-
-                    <span className="font-mono text-sm font-bold tabular-nums text-[#111110]">
-                      ${item.basePrice.toFixed(2)}
-                    </span>
+                  <div className="relative aspect-square w-full overflow-hidden rounded-2xl bg-[#F3EFEA] mb-3">
+                    <Image
+                      src={item.imageUrl || '/images/iced-latte.jpg'}
+                      alt={item.name}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      sizes="(max-width: 768px) 50vw, 25vw"
+                    />
                   </div>
-
-                  <h3
-                    className="text-lg font-bold text-[#111110] tracking-tight"
-                    style={{ fontFamily: 'var(--font-fraunces), Georgia, serif' }}
-                  >
+                  <h3 className="text-sm font-bold text-[#111827] truncate">
                     {item.name}
                   </h3>
-                  <p className="mt-1.5 text-xs text-[#4A4843] leading-relaxed line-clamp-3">
-                    {item.description}
-                  </p>
                 </div>
 
-                <div className="mt-5 pt-4 border-t border-[#D4D0C5] flex items-center justify-between">
-                  <span className="font-mono text-xs text-[#4A4843]">
-                    {item.customizationGroups.length} options
+                <div className="flex items-center justify-between mt-2 pt-1">
+                  <span className="text-xs font-semibold text-[#6B7280]">
+                    P{item.basePrice}
                   </span>
-
                   <button
                     type="button"
-                    disabled={!item.isAvailable}
                     onClick={() => setCustomizingItem(item)}
-                    className={`px-4 py-2 text-xs font-semibold tracking-wide transition-colors cursor-pointer ${
-                      item.isAvailable
-                        ? 'bg-[#111110] text-[#F8F6F0] hover:bg-[#E02E24]'
-                        : 'bg-[#D4D0C5] text-[#4A4843] cursor-not-allowed'
-                    }`}
+                    aria-label={`Customize ${item.name}`}
+                    className="flex h-8 w-8 items-center justify-center rounded-full bg-[#111827] hover:bg-[#133E2B] text-white shadow-xs transition-colors cursor-pointer"
                   >
-                    {item.isAvailable ? 'Customize & Add' : 'Temporarily Unavailable'}
+                    <Plus className="h-4 w-4" />
                   </button>
                 </div>
               </div>
             ))}
           </div>
         </section>
-      </main>
 
-      {/* Floating Sticky Cart Pill (Thumb Zone) */}
-      {cartItemCount > 0 && (
-        <aside
-          aria-label="Active order drawer"
-          className="fixed bottom-4 inset-x-4 md:inset-x-auto md:right-8 md:w-96 z-40"
-        >
-          <button
-            onClick={() => setIsCartOpen(true)}
-            className="w-full flex items-center justify-between p-3.5 bg-[#111110] text-[#F8F6F0] border border-[#2C2B29] shadow-2xl hover:bg-[#1A1918] transition-colors cursor-pointer"
-          >
-            <div className="flex items-center gap-3">
-              <span className="flex h-8 w-8 items-center justify-center bg-[#E02E24] text-[#F8F6F0]">
-                <ShoppingBag className="h-4 w-4" />
-              </span>
-              <div className="text-left font-mono">
-                <span className="text-xs font-bold block">
-                  {cartItemCount} {cartItemCount === 1 ? 'ITEM' : 'ITEMS'} IN TRAY
+        {/* ========================================================= */}
+        {/* MENU BROWSING WITH CATEGORY SIDEBAR (Showcase Screen 2)     */}
+        {/* ========================================================= */}
+        <section id="menu" className="pt-6 space-y-6">
+          {/* Search Bar & Title */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <h2 className="text-2xl font-bold tracking-tight text-[#111827]">
+              Menu Browsing
+            </h2>
+            <div className="relative max-w-xs w-full">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#9CA3AF]" />
+              <input
+                id="search-catalog"
+                type="text"
+                placeholder="Search coffee or snacks..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-4 py-2 text-xs rounded-full border border-[#E5E7EB] bg-white text-[#111827] placeholder-[#9CA3AF] focus:border-[#133E2B] focus:outline-hidden transition-colors"
+              />
+            </div>
+          </div>
+
+          {/* Main 2-Column Split: Category Navigation & Item List */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+            {/* Left Category Sidebar / Pills */}
+            <aside className="md:col-span-3 sticky top-20 z-20 space-y-1 bg-[#FFFFFF] p-2 rounded-2xl border border-[#E5E7EB] shadow-xs">
+              <button
+                type="button"
+                onClick={() => setActiveCategorySlug('all')}
+                className={`w-full flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer text-left ${
+                  activeCategorySlug === 'all'
+                    ? 'bg-[#133E2B] text-white'
+                    : 'text-[#4B5563] hover:bg-[#F3EFEA]'
+                }`}
+              >
+                <span>All</span>
+              </button>
+
+              {categories.map((cat) => {
+                const isActive = activeCategorySlug === cat.slug;
+                return (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setActiveCategorySlug(cat.slug)}
+                    className={`w-full flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer text-left ${
+                      isActive
+                        ? 'bg-[#133E2B] text-white'
+                        : 'text-[#4B5563] hover:bg-[#F3EFEA]'
+                    }`}
+                  >
+                    {getCategoryIcon(cat.slug)}
+                    <span>{cat.name}</span>
+                  </button>
+                );
+              })}
+            </aside>
+
+            {/* Right Item List Rows (Matches Screen 2) */}
+            <div className="md:col-span-9 space-y-4">
+              <div className="flex items-center justify-between pb-2 border-b border-[#E5E7EB]">
+                <h3 className="text-base font-bold text-[#111827] capitalize">
+                  {activeCategorySlug === 'all' ? 'All Items' : activeCategorySlug.replace('-', ' ')}
+                </h3>
+                <span className="text-xs text-[#6B7280]">
+                  {filteredItems.length} available
                 </span>
-                <span className="text-xs text-[#D4D0C5]">Tap to review & checkout</span>
+              </div>
+
+              <div className="space-y-3">
+                {filteredItems.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between gap-4 p-4 rounded-2xl bg-[#FFFFFF] border border-[#E5E7EB] hover:border-[#D1D5DB] hover:shadow-xs transition-all"
+                  >
+                    {/* Thumbnail & Text Info */}
+                    <div className="flex items-center gap-4 min-w-0">
+                      <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-[#F3EFEA]">
+                        <Image
+                          src={item.imageUrl || '/images/iced-latte.jpg'}
+                          alt={item.name}
+                          fill
+                          className="object-cover"
+                          sizes="64px"
+                        />
+                      </div>
+                      <div className="min-w-0">
+                        <h4 className="text-sm font-bold text-[#111827] truncate">
+                          {item.name}
+                        </h4>
+                        <p className="text-xs text-[#6B7280] truncate mt-0.5 max-w-md">
+                          {item.description}
+                        </p>
+                        <div className="text-xs font-bold text-[#111827] mt-1">
+                          P{item.basePrice}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Circular Add Button */}
+                    <button
+                      type="button"
+                      onClick={() => setCustomizingItem(item)}
+                      aria-label={`Customize ${item.name}`}
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#111827] hover:bg-[#133E2B] text-white shadow-xs transition-colors cursor-pointer"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))}
               </div>
             </div>
+          </div>
+        </section>
+      </main>
 
-            <span
-              className="text-lg font-bold tabular-nums pr-2"
-              style={{
-                fontFamily: 'var(--font-fraunces), Georgia, serif',
-                fontVariationSettings: cartFontAxes.fontVariationSettings,
-              }}
-            >
-              ${cartSubtotal.toFixed(2)}
-            </span>
+      {/* Floating Cart Button on mobile */}
+      {cartItemCount > 0 && (
+        <div className="fixed bottom-6 right-6 z-40 md:hidden">
+          <button
+            type="button"
+            onClick={() => setIsCartOpen(true)}
+            className="flex items-center gap-2.5 px-5 py-3 rounded-full bg-[#133E2B] text-white font-semibold text-xs shadow-xl active:scale-95 transition-transform cursor-pointer"
+          >
+            <ShoppingBag className="h-4 w-4" />
+            <span>Cart ({cartItemCount}) • P{cart.reduce((s, i) => s + i.lineTotal, 0)}</span>
           </button>
-        </aside>
+        </div>
       )}
 
-      {/* Customizer Modal */}
+      {/* Drink Customization Modal (Screen 3) */}
       {customizingItem && (
         <DrinkCustomizerModal
           item={customizingItem}
@@ -343,13 +450,14 @@ export function CustomerOrderingApp({
         />
       )}
 
-      {/* Cart & Checkout Sheet */}
+      {/* Cart & Checkout Sheet (Screen 4) */}
       {isCartOpen && (
         <CartCheckoutSheet
           cart={cart}
           loyaltyBalance={loyaltyAccount.balance}
           onClose={() => setIsCartOpen(false)}
           onRemoveItem={handleRemoveFromCart}
+          onUpdateQuantity={handleUpdateQuantity}
           onClearCart={handleClearCart}
           onOrderPlaced={handleOrderPlaced}
         />

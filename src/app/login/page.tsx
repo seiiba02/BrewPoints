@@ -241,7 +241,7 @@ export default function LoginPage() {
                     <div className="font-semibold text-base text-[#111110] flex flex-wrap items-center gap-2">
                       <span>Customer Wallet</span>
                       <span className="font-mono text-[11px] px-1.5 py-0.5 bg-[#E02E24] text-[#F8F6F0]">
-                        MOBILE PWA
+                        REACT + CAPACITOR
                       </span>
                     </div>
                     <p className="text-xs text-[#4A4843]">
@@ -262,8 +262,8 @@ export default function LoginPage() {
           </div>
 
           <div className="pt-4 border-t border-[#D4D0C5] font-mono text-xs text-[#4A4843]">
-            Dual-Mode Auth: Cookie Session (Web) &amp; Firebase Bearer Token
-            (Mobile API)
+            Dual-Mode Auth: Cookie Session (Web) &amp; Capacitor Native Preferences
+            (iOS / Android Mobile App)
           </div>
         </section>
       </main>

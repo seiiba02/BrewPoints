@@ -13,11 +13,11 @@ describe('BrewFlow Domain & Storage Engine Suite', () => {
   it('loads default menu categories and items', async () => {
     const categories = await adapter.getCategories();
     expect(categories.length).toBeGreaterThan(0);
-    expect(categories.some((c) => c.slug === 'hot-coffee')).toBe(true);
+    expect(categories.some((c) => c.slug === 'coffee')).toBe(true);
 
-    const hotCoffeeItems = await adapter.getMenuItems('hot-coffee');
-    expect(hotCoffeeItems.length).toBeGreaterThan(0);
-    expect(hotCoffeeItems.every((i) => i.categorySlug === 'hot-coffee')).toBe(true);
+    const coffeeItems = await adapter.getMenuItems('coffee');
+    expect(coffeeItems.length).toBeGreaterThan(0);
+    expect(coffeeItems.every((i) => i.categorySlug === 'coffee')).toBe(true);
   });
 
   it('toggles item availability (86-ing an item)', async () => {

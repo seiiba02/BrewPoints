@@ -50,43 +50,43 @@
 }
 
 :root {
-  /* Kinetic Variable-Type Espresso Foundry Palette */
+  /* BrewFlow Official Coffeehouse Palette */
   --background: #F8F6F0;
-  --foreground: #111110;
+  --foreground: #111827;
   --card: #FFFFFF;
-  --card-foreground: #111110;
+  --card-foreground: #111827;
   --popover: #FFFFFF;
-  --popover-foreground: #111110;
-  --primary: #E02E24;
-  --primary-foreground: #F8F6F0;
-  --secondary: #EFECE3;
-  --secondary-foreground: #111110;
-  --muted: #EFECE3;
-  --muted-foreground: #4A4843;
-  --accent: #EFECE3;
-  --accent-foreground: #111110;
-  --destructive: #B91C1C;
-  --border: #D4D0C5;
-  --input: #111110;
-  --ring: #E02E24;
-  --chart-1: #E02E24;
-  --chart-2: #111110;
-  --chart-3: #15803D;
-  --chart-4: #B45309;
-  --chart-5: #4A4843;
-  --radius: 0.25rem;
-  --sidebar: #111110;
+  --popover-foreground: #111827;
+  --primary: #133E2B;
+  --primary-foreground: #FFFFFF;
+  --secondary: #F3EFEA;
+  --secondary-foreground: #111827;
+  --muted: #F3EFEA;
+  --muted-foreground: #6B7280;
+  --accent: #E8F3EE;
+  --accent-foreground: #133E2B;
+  --destructive: #EF4444;
+  --border: #E5E7EB;
+  --input: #111827;
+  --ring: #133E2B;
+  --chart-1: #06B6D4;
+  --chart-2: #10B981;
+  --chart-3: #133E2B;
+  --chart-4: #D97706;
+  --chart-5: #6B7280;
+  --radius: 0.75rem;
+  --sidebar: #133E2B;
   --sidebar-foreground: #F8F6F0;
-  --sidebar-primary: #E02E24;
-  --sidebar-primary-foreground: #F8F6F0;
-  --sidebar-accent: #222220;
-  --sidebar-accent-foreground: #F8F6F0;
-  --sidebar-border: #2C2B29;
-  --sidebar-ring: #E02E24;
+  --sidebar-primary: #1E4D37;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #1B4533;
+  --sidebar-accent-foreground: #FFFFFF;
+  --sidebar-border: #1B4533;
+  --sidebar-ring: #133E2B;
 
-  /* Live Variable-Font Specimen Axes */
-  --specimen-wght: 700;
-  --specimen-opsz: 96;
+  /* Specimen Axes */
+  --specimen-wght: 600;
+  --specimen-opsz: 48;
 }
 
 @layer base {

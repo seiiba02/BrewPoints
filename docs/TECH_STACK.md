@@ -10,7 +10,7 @@ BrewFlow is a mobile-first coffee shop ordering and pickup platform for a single
 
 | Area | Technology | Responsibility |
 |---|---|---|
-| Web application | Next.js, React, TypeScript | Customer ordering, staff interface, owner dashboard, and server-side application logic |
+| Web & mobile application | Next.js, React 19, Capacitor, TypeScript | Customer ordering/wallet, staff interface, owner dashboard, native iOS/Android Capacitor shell, and server-side application logic |
 | Styling and components | Tailwind CSS, shadcn/ui | Responsive styling and reusable, accessible UI components |
 | Database | Supabase PostgreSQL | Products, product options, orders, order items, profiles, staff roles, and optional loyalty records |
 | Authentication | Supabase Auth | Sign-in and session management |

@@ -81,16 +81,16 @@ The system should be simple enough for a small business while providing useful c
 - **Architecture**: REST API (`/api/v1/*`), Server Actions, and Owner Admin Portal.
 - **Styling**: Tailwind CSS v4 + `shadcn/ui` + Recharts.
 
-### Mobile Application: React Native (Expo)
-- **Framework**: React Native with Expo SDK + TypeScript.
-- **Navigation**: React Navigation (Stack + Bottom Tabs).
-- **Scanner & QR**: Camera barcode scanner + SVG QR generator.
+### Mobile Application: React 19 + Capacitor
+- **Framework**: React 19 + Capacitor (`@capacitor/core`, `@capacitor/cli`) + TypeScript.
+- **Native Plugins**: `@capacitor/preferences` (secure auth storage), `@capacitor/haptics` (tactile counter feedback), `@capacitor/clipboard`, `@capacitor/status-bar`, and `@capacitor/app` (`brewpoints://` deep-link listener).
+- **Scanner & QR**: QR payload scanner + `qrcode.react` SVG QR generator.
 
 ---
 
 ## Deliverables
 
-1. **Mobile Application**: React Native (Expo) app providing Customer Wallet and Staff Scanner interfaces.
+1. **Mobile Application**: React 19 + Capacitor (iOS & Android) app providing Customer Wallet and Staff Scanner interfaces.
 2. **Admin Web Dashboard**: Responsive Next.js web application for coffee shop owners.
 3. **Backend API**: Next.js REST API (`/api/v1/*`) integrated with Supabase PostgreSQL and Supabase Auth.
 4. **Documentation**: Architectural specification, Supabase schema & RLS policies, and API documentation.

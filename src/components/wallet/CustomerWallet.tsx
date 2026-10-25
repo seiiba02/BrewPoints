@@ -18,6 +18,12 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { computeSpecimenAxes } from '@/lib/design-tokens';
+import {
+  configureFoundryStatusBar,
+  copyTextWithCapacitor,
+  getCapacitorPlatform,
+  triggerFoundryHaptic,
+} from '@/lib/capacitor/nativeBridge';
 
 interface BalanceData {
   current_points: number;
@@ -149,6 +155,7 @@ export function CustomerWallet({ userName }: { userName: string }) {
   }, []);
 
   useEffect(() => {
+    void configureFoundryStatusBar();
     fetchWalletData(1);
     refreshAllocationQr();
   }, [fetchWalletData, refreshAllocationQr]);
@@ -188,11 +195,14 @@ export function CustomerWallet({ userName }: { userName: string }) {
       });
       const json = await res.json();
       if (!res.ok) {
+        await triggerFoundryHaptic('error');
         setError(json.message ?? 'Could not generate redemption QR.');
         return;
       }
+      await triggerFoundryHaptic('success');
       setRedemptionModal(json.data);
     } catch {
+      await triggerFoundryHaptic('error');
       setError('Could not generate redemption QR.');
     } finally {
       setMintingRewardId(null);
@@ -200,7 +210,7 @@ export function CustomerWallet({ userName }: { userName: string }) {
   };
 
   const copyText = async (text: string, type: 'alloc' | 'redeem') => {
-    await navigator.clipboard.writeText(text);
+    await copyTextWithCapacitor(text);
     if (type === 'alloc') {
       setCopiedAlloc(true);
       setTimeout(() => setCopiedAlloc(false), 2000);
@@ -209,6 +219,8 @@ export function CustomerWallet({ userName }: { userName: string }) {
       setTimeout(() => setCopiedRedeem(false), 2000);
     }
   };
+
+  const runtimePlatform = getCapacitorPlatform();
 
   const totalRedemptionsCount = transactions.filter(
     (t) => t.type === 'redeem'
@@ -229,9 +241,15 @@ export function CustomerWallet({ userName }: { userName: string }) {
         </div>
 
         <div className="flex items-center gap-2">
+          <span className="border border-[#111110] bg-[#EFECE3] px-2.5 py-2 font-mono text-[11px] font-semibold uppercase text-[#111110]">
+            CAPACITOR · {runtimePlatform.toUpperCase()}
+          </span>
           <button
             type="button"
-            onClick={() => fetchWalletData(page)}
+            onClick={() => {
+              void triggerFoundryHaptic('light');
+              fetchWalletData(page);
+            }}
             className="inline-flex items-center gap-1.5 border border-[#111110] bg-[#FFFFFF] px-3.5 py-2 font-mono text-xs font-semibold uppercase text-[#111110] hover:bg-[#EFECE3] transition-colors cursor-pointer"
           >
             <RefreshCw className="h-3.5 w-3.5" />

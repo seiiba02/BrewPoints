@@ -3,10 +3,16 @@ import { BrewFlowOwnerDashboard } from '@/components/dashboard/BrewFlowOwnerDash
 export const dynamic = 'force-dynamic';
 
 export const metadata = {
-  title: 'Owner Administration & Telemetry | BrewFlow',
-  description: 'Sales telemetry, order history, and live menu catalog manager',
+  title: 'Owner Dashboard | BrewFlow',
+  description: 'Monitor sales, manage menu, and track customer engagement.',
 };
 
 export default function DashboardPage() {
-  return <BrewFlowOwnerDashboard />;
+  return (
+    <div className="min-h-screen bg-[#F8F6F0] p-4 sm:p-6 lg:p-8">
+      <div className="max-w-[1440px] mx-auto">
+        <BrewFlowOwnerDashboard />
+      </div>
+    </div>
+  );
 }

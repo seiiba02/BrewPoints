@@ -29,9 +29,9 @@ export function OrderLiveTracker({ order, onDismiss }: OrderLiveTrackerProps) {
   const isCancelled = order.status === 'cancelled';
 
   return (
-    <div className="border border-[#111110] bg-[#FFFFFF] shadow-sm text-[#111110] overflow-hidden">
+    <div className="rounded-3xl border border-[#E5E7EB] bg-[#FFFFFF] shadow-sm text-[#111827] overflow-hidden">
       {/* Live Status Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#111110] bg-[#111110] text-[#F8F6F0] px-5 py-4 gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#F3EFEA] bg-[#111827] text-white px-6 py-4 gap-3">
         <div className="flex items-center gap-3">
           <span className="relative flex h-3 w-3">
             <span
@@ -39,8 +39,8 @@ export function OrderLiveTracker({ order, onDismiss }: OrderLiveTrackerProps) {
                 order.status === 'ready'
                   ? 'bg-[#15803D]'
                   : order.status === 'completed'
-                  ? 'bg-[#4A4843]'
-                  : 'bg-[#E02E24]'
+                  ? 'bg-[#6B7280]'
+                  : 'bg-[#EA580C]'
               }`}
             />
             <span
@@ -48,34 +48,34 @@ export function OrderLiveTracker({ order, onDismiss }: OrderLiveTrackerProps) {
                 order.status === 'ready'
                   ? 'bg-[#15803D]'
                   : order.status === 'completed'
-                  ? 'bg-[#4A4843]'
-                  : 'bg-[#E02E24]'
+                  ? 'bg-[#6B7280]'
+                  : 'bg-[#EA580C]'
               }`}
             />
           </span>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-mono text-xs uppercase tracking-wider text-[#D4D0C5]">
+              <span className="text-xs font-semibold text-[#9CA3AF]">
                 Active Pickup Ticket
               </span>
-              <span className="font-mono text-sm font-bold text-[#F8F6F0]">
-                {order.id}
+              <span className="text-sm font-bold text-white">
+                #{order.id}
               </span>
             </div>
-            <p className="text-xs text-[#D4D0C5] mt-0.5">
-              Pickup Slot: <strong className="text-[#F8F6F0]">{order.pickupSlot}</strong>
+            <p className="text-xs text-[#D1D5DB] mt-0.5">
+              Pickup Slot: <strong className="text-white">{order.pickupSlot}</strong>
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="font-mono text-xs text-right">
-            <span className="text-[#D4D0C5] block">Customer</span>
-            <span className="font-bold text-[#F8F6F0]">{order.customerName}</span>
+          <div className="text-xs text-right">
+            <span className="text-[#9CA3AF] block">Customer</span>
+            <span className="font-bold text-white">{order.customerName}</span>
           </div>
           <button
             onClick={onDismiss}
-            className="border border-[#3D3B37] bg-[#1A1918] px-3 py-1.5 text-xs font-mono font-medium text-[#F8F6F0] hover:bg-[#E02E24] hover:border-[#E02E24] transition-colors cursor-pointer"
+            className="rounded-xl border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white hover:bg-white/20 transition-colors cursor-pointer"
           >
             Close Tracker
           </button>
@@ -83,9 +83,9 @@ export function OrderLiveTracker({ order, onDismiss }: OrderLiveTrackerProps) {
       </div>
 
       {/* Multi-Stage Stepper */}
-      <div className="p-5 sm:p-6 bg-[#F8F6F0] border-b border-[#D4D0C5]">
+      <div className="p-6 bg-[#F8F6F0] border-b border-[#E5E7EB]">
         {isCancelled ? (
-          <div className="flex items-center gap-3 p-4 border border-[#E02E24] bg-[#FDF2F2] text-[#E02E24]">
+          <div className="flex items-center gap-3 p-4 rounded-2xl border border-[#EF4444] bg-[#FEF2F2] text-[#DC2626]">
             <AlertCircle className="h-5 w-5 shrink-0" />
             <div>
               <span className="font-bold text-sm block">Order Cancelled</span>
@@ -104,30 +104,30 @@ export function OrderLiveTracker({ order, onDismiss }: OrderLiveTrackerProps) {
               return (
                 <div
                   key={stage.status}
-                  className={`flex md:flex-col items-center md:items-start gap-3 p-3 border transition-colors ${
+                  className={`flex md:flex-col items-center md:items-start gap-3 p-3.5 rounded-2xl border transition-colors ${
                     isCurrent
-                      ? 'border-[#111110] bg-[#111110] text-[#F8F6F0]'
+                      ? 'border-[#133E2B] bg-[#133E2B] text-white shadow-xs'
                       : isPast
-                      ? 'border-[#15803D] bg-[#FFFFFF] text-[#15803D]'
-                      : 'border-[#D4D0C5] bg-[#FFFFFF] text-[#4A4843] opacity-60'
+                      ? 'border-[#15803D] bg-white text-[#15803D]'
+                      : 'border-[#E5E7EB] bg-white text-[#6B7280] opacity-60'
                   }`}
                 >
                   <div
-                    className={`flex h-7 w-7 items-center justify-center shrink-0 ${
+                    className={`flex h-7 w-7 items-center justify-center rounded-xl shrink-0 ${
                       isCurrent
-                        ? 'bg-[#E02E24] text-[#F8F6F0]'
+                        ? 'bg-white/20 text-white'
                         : isPast
-                        ? 'bg-[#15803D] text-[#F8F6F0]'
-                        : 'border border-[#D4D0C5] text-[#4A4843]'
+                        ? 'bg-[#DCFCE7] text-[#15803D]'
+                        : 'border border-[#E5E7EB] text-[#6B7280]'
                     }`}
                   >
                     <Icon className="h-3.5 w-3.5" />
                   </div>
                   <div>
-                    <span className="font-mono text-xs uppercase block tracking-wider opacity-80">
+                    <span className="text-[10px] uppercase block tracking-wider opacity-75 font-semibold">
                       Step 0{idx + 1}
                     </span>
-                    <span className="text-xs font-semibold block leading-tight">
+                    <span className="text-xs font-bold block leading-tight">
                       {stage.label}
                     </span>
                   </div>
@@ -139,14 +139,14 @@ export function OrderLiveTracker({ order, onDismiss }: OrderLiveTrackerProps) {
 
         {/* Counter Ready Banner */}
         {order.status === 'ready' && (
-          <div className="mt-4 p-4 border border-[#15803D] bg-[#DCFCE7] text-[#15803D] flex items-center justify-between">
+          <div className="mt-4 p-4 rounded-2xl border border-[#15803D] bg-[#DCFCE7] text-[#15803D] flex items-center justify-between">
             <div className="flex items-center gap-2">
               <PackageCheck className="h-5 w-5" />
               <span className="font-semibold text-xs sm:text-sm">
                 Your order is freshly staged at the counter pickup shelf!
               </span>
             </div>
-            <span className="font-mono text-xs font-bold uppercase px-2.5 py-1 bg-[#15803D] text-[#FFFFFF]">
+            <span className="text-xs font-bold uppercase px-3 py-1 rounded-full bg-[#15803D] text-white">
               Ready Now
             </span>
           </div>
@@ -154,16 +154,16 @@ export function OrderLiveTracker({ order, onDismiss }: OrderLiveTrackerProps) {
       </div>
 
       {/* Ticket Items & Payment Summary */}
-      <div className="p-5 sm:p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="md:col-span-2 space-y-3">
-          <span className="text-xs font-mono uppercase font-semibold text-[#111110] block">
+          <span className="text-xs font-bold text-[#111827] block">
             Ticket Breakdown ({order.items.length} items)
           </span>
-          <div className="divide-y divide-[#D4D0C5] border border-[#D4D0C5] bg-[#FFFFFF]">
+          <div className="divide-y divide-[#F3EFEA] border border-[#E5E7EB] rounded-2xl bg-white overflow-hidden">
             {order.items.map((item) => (
-              <div key={item.id} className="p-3 flex justify-between items-start text-xs">
+              <div key={item.id} className="p-3.5 flex justify-between items-start text-xs">
                 <div>
-                  <span className="font-semibold text-[#111110]">
+                  <span className="font-bold text-[#111827]">
                     {item.quantity}x {item.name}
                   </span>
                   {item.selectedOptions.length > 0 && (
@@ -171,7 +171,7 @@ export function OrderLiveTracker({ order, onDismiss }: OrderLiveTrackerProps) {
                       {item.selectedOptions.map((opt) => (
                         <span
                           key={opt.optionId}
-                          className="text-xs font-mono px-1.5 py-0.5 bg-[#EFECE3] border border-[#D4D0C5] text-[#4A4843]"
+                          className="text-[11px] px-2 py-0.5 rounded-md bg-[#F3EFEA] text-[#4B5563]"
                         >
                           {opt.optionName}
                         </span>
@@ -179,13 +179,13 @@ export function OrderLiveTracker({ order, onDismiss }: OrderLiveTrackerProps) {
                     </div>
                   )}
                   {item.specialInstructions && (
-                    <p className="mt-1 text-xs italic text-[#4A4843]">
+                    <p className="mt-1 text-xs italic text-[#6B7280]">
                       &ldquo;{item.specialInstructions}&rdquo;
                     </p>
                   )}
                 </div>
-                <span className="font-mono font-medium tabular-nums text-[#111110]">
-                  ${item.lineTotal.toFixed(2)}
+                <span className="font-bold tabular-nums text-[#111827]">
+                  P{item.lineTotal}
                 </span>
               </div>
             ))}
@@ -193,32 +193,32 @@ export function OrderLiveTracker({ order, onDismiss }: OrderLiveTrackerProps) {
         </div>
 
         {/* Payment & Receipt Summary */}
-        <div className="border border-[#D4D0C5] bg-[#F8F6F0] p-4 flex flex-col justify-between space-y-4">
+        <div className="border border-[#E5E7EB] rounded-2xl bg-[#F8F6F0] p-5 flex flex-col justify-between space-y-4">
           <div>
-            <span className="text-xs font-mono uppercase font-semibold text-[#111110] block mb-2">
+            <span className="text-xs font-bold text-[#111827] block mb-3">
               Receipt & Settlement
             </span>
-            <div className="space-y-1.5 text-xs font-mono">
-              <div className="flex justify-between text-[#4A4843]">
+            <div className="space-y-1.5 text-xs">
+              <div className="flex justify-between text-[#6B7280]">
                 <span>Subtotal</span>
-                <span>${order.subtotal.toFixed(2)}</span>
+                <span>P{order.subtotal}</span>
               </div>
               {order.discount > 0 && (
                 <div className="flex justify-between text-[#15803D] font-bold">
                   <span>Loyalty Perk</span>
-                  <span>-${order.discount.toFixed(2)}</span>
+                  <span>-P{order.discount}</span>
                 </div>
               )}
-              <div className="flex justify-between text-[#111110] font-bold pt-2 border-t border-[#D4D0C5]">
+              <div className="flex justify-between text-[#111827] font-bold pt-2 border-t border-[#E5E7EB]">
                 <span>Total Amount Due</span>
-                <span className="text-sm">${order.total.toFixed(2)}</span>
+                <span className="text-base">P{order.total}</span>
               </div>
             </div>
 
-            <div className="mt-4 pt-3 border-t border-[#D4D0C5] text-xs text-[#4A4843] space-y-1">
+            <div className="mt-4 pt-3 border-t border-[#E5E7EB] text-xs text-[#6B7280] space-y-1">
               <div className="flex justify-between">
                 <span>Payment Mode:</span>
-                <strong className="text-[#111110] uppercase">
+                <strong className="text-[#111827] uppercase">
                   {order.paymentStatus === 'paid_at_pickup' ? 'Settled' : 'Pay at Counter'}
                 </strong>
               </div>
@@ -227,16 +227,6 @@ export function OrderLiveTracker({ order, onDismiss }: OrderLiveTrackerProps) {
                 <strong className="text-[#15803D]">+{order.pointsEarned} pts</strong>
               </div>
             </div>
-          </div>
-
-          <div className="pt-3 border-t border-[#D4D0C5]">
-            <p className="text-xs text-[#4A4843] leading-normal">
-              💡 Need to bump status for testing? Open the{' '}
-              <a href="/queue" className="underline font-bold text-[#111110] hover:text-[#E02E24]">
-                Kitchen Queue
-              </a>{' '}
-              in another tab to watch this ticket progress in real-time.
-            </p>
           </div>
         </div>
       </div>

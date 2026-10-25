@@ -25,9 +25,9 @@ const jetBrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'BrewFlow — Specialty Coffee Ordering & Pickup Platform',
+  title: 'BrewFlow — Specialty Coffee Platform',
   description:
-    'Mobile-first coffee shop ordering and pickup platform featuring real-time kitchen operations and supporting loyalty rewards.',
+    'Browse menu, customize your drink, place your order, and pick it up at your convenience.',
 };
 
 export default function RootLayout({
@@ -40,7 +40,7 @@ export default function RootLayout({
       lang="en"
       className={`${fraunces.variable} ${plusJakartaSans.variable} ${jetBrainsMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-background text-foreground selection:bg-[#E02E24] selection:text-[#F8F6F0]">
+      <body className="min-h-full flex flex-col bg-background text-foreground selection:bg-[#133E2B] selection:text-[#FFFFFF]">
         <AppNav />
         {children}
       </body>

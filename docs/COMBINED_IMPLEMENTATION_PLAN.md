@@ -1,6 +1,6 @@
-# BrewPoints — Combined Implementation Plan (Supabase + Next.js + React Native)
+# BrewPoints — Combined Implementation Plan (Supabase + Next.js + React & Capacitor)
 
-This document integrates the complete technical blueprint for the **BrewPoints** digital loyalty platform. It serves as the single source of truth across all implementation phases: Supabase PostgreSQL database foundation, Next.js REST API & Admin Portal, and React Native (Expo) mobile client.
+This document integrates the complete technical blueprint for the **BrewPoints** digital loyalty platform. It serves as the single source of truth across all implementation phases: Supabase PostgreSQL database foundation, Next.js REST API & Admin Portal, and the **React 19 + Capacitor** mobile client.
 
 ---
 
@@ -10,7 +10,7 @@ This document integrates the complete technical blueprint for the **BrewPoints**
 3. [Authentication & Authorization](#3-authentication--authorization)
 4. [Phase 1: Backend Foundation & Points Allocation](#4-phase-1-backend-foundation--points-allocation)
 5. [Phase 2: Reward Catalog & Atomic JWS Redemption Engine](#5-phase-2-reward-catalog--atomic-jws-redemption-engine)
-6. [Phase 3: Mobile Application (React Native & Expo)](#6-phase-3-mobile-application-react-native--expo)
+6. [Phase 3: Mobile Application (React 19 & Capacitor)](#6-phase-3-mobile-application-react-19--capacitor)
 7. [Phase 4: Admin Web Portal & Staff Management](#7-phase-4-admin-web-portal--staff-management)
 8. [Testing & Out-of-Scope Items](#8-testing--out-of-scope-items)
 
@@ -24,12 +24,12 @@ This document integrates the complete technical blueprint for the **BrewPoints**
 | **Authentication** | **Supabase Auth** | Built-in `auth.users`, JWT verification, email OTP / Magic Links, and Google OAuth |
 | **Backend API** | **Next.js 16 (App Router)** | REST API Route Handlers (`/api/v1/*`) with Bearer token authentication & `@supabase/ssr` / `@supabase/supabase-js` |
 | **Web Admin Portal** | **Next.js 16 + React 19** | Owner analytics dashboard, staff CRUD, reward catalog manager (Tailwind CSS v4 + `shadcn/ui` + Recharts) |
-| **Mobile Client** | **React Native (Expo)** | Cross-platform Customer Loyalty Wallet and Staff POS Scanner app using React Navigation and Expo Barcode Scanner |
+| **Mobile Client** | **React 19 + Capacitor** | Native iOS & Android wrapper (`@capacitor/core`, `@capacitor/cli`, `@capacitor/preferences`, `@capacitor/haptics`, `@capacitor/clipboard`, `@capacitor/status-bar`, `@capacitor/app`) packaging the unified React Loyalty Wallet and Staff POS Scanner |
 
 ```mermaid
 flowchart TD
     subgraph Clients["Frontend Clients"]
-        M["Mobile App (React Native / Expo)\n• Customer: Loyalty Card, Dynamic QR, Catalog\n• Staff: Barcode Scanner, Point Allocation, Redemption"]
+        M["Mobile App (React 19 + Capacitor)\n• Customer: Loyalty Card, Dynamic QR, Catalog\n• Staff: QR Scanner, Point Allocation, Redemption\n• Native Bridge: Preferences, Haptics, Clipboard, Deep Links"]
         W["Owner Web Portal (Next.js 16 / React 19)\n• Analytics Dashboard, Staff Directory, Reward CRUD"]
     end
 
@@ -184,15 +184,19 @@ CREATE TABLE public.transactions (
 
 ---
 
-## 6. Phase 3: Mobile Application (React Native & Expo)
+## 6. Phase 3: Mobile Application (React 19 & Capacitor)
 
-- **Customer Screens**:
-  - **Home / Loyalty Card**: Digital loyalty card with live point balance, milestone progress bar, and 10-minute dynamic allocation QR code.
-  - **Rewards Catalog**: Browse rewards, view point eligibility, and launch dynamic redemption QR modal.
+- **Capacitor Native Shell (`capacitor.config.ts` & `src/lib/capacitor/nativeBridge.ts`)**:
+  - Packages the React 19 application into native iOS and Android shells (`com.brewpoints.app`).
+  - `CapacitorAuthStorage`: Persists Supabase Auth JWTs natively via `@capacitor/preferences` (`localStorage` fallback on web).
+  - Native device integration via `@capacitor/haptics` (tactile counter feedback), `@capacitor/clipboard`, `@capacitor/status-bar` (`#111110` Carbon Ink), and `@capacitor/app` (`brewpoints://` custom scheme deep-link handler).
+- **Customer Screens (`/wallet`)**:
+  - **Home / Loyalty Card**: Digital loyalty card with live variable-weight `Fraunces` point balance, milestone progress bar, future-spend simulator, and 10-minute dynamic allocation QR code (`qrcode.react`).
+  - **Rewards Catalog**: Browse rewards, view point eligibility, and launch dynamic 15-minute redemption QR modal.
   - **History**: Paginated history of earned points and redeemed rewards.
-- **Staff Screens**:
-  - **QR Scanner**: Camera barcode scanner supporting `brewpoints://allocate` and `brewpoints://redeem`.
-  - **Allocation Form**: Customer name/balance preview, purchase amount input, live points preview, and confirmation.
+- **Staff Screens (`/pos`)**:
+  - **QR & Deep-Link Scanner**: Supports `brewpoints://allocate` and `brewpoints://redeem` via camera scan, native deep links, or clipboard paste.
+  - **Allocation Form**: Customer name/balance preview, quick espresso bar presets (`$4.50`–`$42.00`), custom purchase amount input, live variable-weight points preview, and confirmation.
   - **Redemption Confirmation**: Fulfill reward, view customer balance, and confirm atomic deduction in <10s.
 
 ---

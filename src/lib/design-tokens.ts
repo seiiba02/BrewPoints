@@ -1,66 +1,60 @@
 /**
- * BrewPoints Shared Design System Tokens
- * Direction: Kinetic Variable-Type Espresso Foundry (variable-font-specimen)
- * Shared across Next.js 16 Web/PWA and React Native (Expo) Mobile clients.
+ * BrewPoints / BrewFlow Shared Design System Tokens
+ * Direction: Official BrewFlow Specialty Coffee Platform UI
+ * Shared across Next.js 16 Web and React 19 + Capacitor (iOS & Android) Mobile clients.
  */
 
 export const BREWPOINTS_TOKENS = {
   direction: {
-    id: 'variable-font-specimen',
-    name: 'Kinetic Variable-Type Espresso Foundry',
+    id: 'brewflow-official',
+    name: 'BrewFlow Coffee Platform Design System',
     mode: 'operate',
   },
   palette: {
     paperGround: '#F8F6F0',
     elevatedSheet: '#FFFFFF',
-    recessedWell: '#EFECE3',
-    carbonInk: '#111110',
-    graphiteMuted: '#4A4843',
-    hairlineRule: '#D4D0C5',
-    signalCrimson: '#E02E24',
-    signalCrimsonHover: '#B82219',
+    recessedWell: '#F3EFEA',
+    carbonInk: '#111827',
+    graphiteMuted: '#4B5563',
+    hairlineRule: '#E5E7EB',
+    forestGreen: '#133E2B',
+    forestGreenDark: '#0E2E20',
+    forestGreenHover: '#1A4D36',
+    forestGreenSoft: '#E8F3EE',
+    signalCrimson: '#EF4444',
+    signalCrimsonHover: '#DC2626',
     verifiedEmerald: '#15803D',
     verifiedEmeraldSoft: '#DCFCE7',
-    warningAmber: '#B45309',
+    warningAmber: '#D97706',
+    warningAmberSoft: '#FEF3C7',
+    preparingOrange: '#EA580C',
+    preparingOrangeSoft: '#FFEDD5',
   },
   typography: {
-    displayFamily: 'Fraunces',
-    sansFamily: 'Plus Jakarta Sans',
-    monoFamily: 'JetBrains Mono',
+    displayFamily: 'var(--font-sans)',
+    sansFamily: 'var(--font-sans)',
+    monoFamily: 'var(--font-geist-mono)',
     scale: {
-      specimenMax: '5.25rem', // 84px (under 6rem craft floor limit)
-      h1: '2.25rem', // 36px
-      h2: '1.5rem', // 24px
-      h3: '1.125rem', // 18px
-      body: '0.9375rem', // 15px
-      monoTelemetry: '0.75rem', // 12px
+      hero: '3.5rem',
+      h1: '2.25rem',
+      h2: '1.5rem',
+      h3: '1.125rem',
+      body: '0.9375rem',
+      caption: '0.75rem',
     },
-    variableAxes: {
-      wghtMin: 320,
-      wghtMax: 900,
-      opszMin: 24,
-      opszMax: 144,
-    },
-  },
-  spacing: {
-    xs: 4,
-    sm: 8,
-    md: 16,
-    lg: 24,
-    xl: 32,
-    xxl: 48,
   },
   radii: {
-    none: 0,
-    sm: 2,
-    md: 4,
-    lg: 6,
+    sm: '0.5rem',
+    md: '0.75rem',
+    lg: '1rem',
+    xl: '1.25rem',
+    full: '9999px',
   },
   loyalty: {
-    currency: 'USD',
-    symbol: '$',
-    pointsPerDollar: 1,
-    roundingMode: 'HALF_UP',
+    currency: 'PHP',
+    symbol: 'P',
+    pointsPerSpend: 1, // 1 point per 10 PHP spend
+    ratioPhpToPoint: 10,
     allocationQrTtlSeconds: 600,
     redemptionQrTtlSeconds: 900,
   },
@@ -68,23 +62,13 @@ export const BREWPOINTS_TOKENS = {
 
 /**
  * Computes live CSS variable-font axis coordinates ('wght' and 'opsz')
- * from a numeric value (e.g., customer point balance or USD purchase spend).
+ * from a numeric value (e.g., customer point balance or spend).
  */
 export function computeSpecimenAxes(value: number, maxReference = 200) {
   const safeVal = Number.isFinite(value) ? Math.max(0, value) : 0;
   const ratio = Math.min(1, safeVal / Math.max(1, maxReference));
-  const wght = Math.round(
-    BREWPOINTS_TOKENS.typography.variableAxes.wghtMin +
-      ratio *
-        (BREWPOINTS_TOKENS.typography.variableAxes.wghtMax -
-          BREWPOINTS_TOKENS.typography.variableAxes.wghtMin)
-  );
-  const opsz = Math.round(
-    BREWPOINTS_TOKENS.typography.variableAxes.opszMin +
-      ratio *
-        (BREWPOINTS_TOKENS.typography.variableAxes.opszMax -
-          BREWPOINTS_TOKENS.typography.variableAxes.opszMin)
-  );
+  const wght = Math.round(400 + ratio * 400);
+  const opsz = Math.round(24 + ratio * 72);
 
   return {
     wght,

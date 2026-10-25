@@ -119,7 +119,7 @@ The implementation should favor a small, maintainable architecture suitable for 
 
 The frontend must never be trusted to determine final prices, authorize privileged actions, or enforce inventory and order-state rules. Important validations must happen on the server. Database constraints and transactions should be used where they help preserve order and payment consistency.
 
-A separate React Native customer app is not required for the first release. It can be considered later if there is a clear business reason for a native app.
+Mobile packaging is handled via **React + Capacitor** (`@capacitor/core`, `@capacitor/cli`) wrapping the unified React application rather than maintaining a separate React Native codebase.
 
 ## 7. Key Data Areas
 

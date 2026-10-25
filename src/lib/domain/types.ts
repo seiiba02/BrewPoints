@@ -42,10 +42,11 @@ export interface MenuItem {
   categoryId: string;
   name: string;
   description: string;
-  basePrice: number; // in USD (e.g. 4.75)
+  basePrice: number; // in PHP / points
   categorySlug: string;
   isAvailable: boolean;
   isPopular?: boolean;
+  imageUrl?: string;
   customizationGroups: CustomizationGroup[];
 }
 
@@ -62,6 +63,7 @@ export interface CartItem {
   menuItemId: string;
   name: string;
   basePrice: number;
+  imageUrl?: string;
   selectedOptions: SelectedCustomization[];
   specialInstructions?: string;
   quantity: number;

@@ -28,7 +28,7 @@
 | **Auth Provider** | **Supabase Auth** | Built-in JWT issuance, secure session management, OAuth, and OTP |
 | **Backend API** | **Next.js 16 (App Router)** | Route Handlers (`/api/v1/*`) with Bearer token authentication and `@supabase/ssr` / `@supabase/supabase-js` |
 | **Admin Portal** | **Next.js 16 + React 19** | Server Components, Tailwind CSS v4, `shadcn/ui`, and Recharts for live analytics |
-| **Mobile App** | **React Native (Expo)** | Cross-platform Customer Loyalty Wallet and Staff POS Scanner app |
+| **Mobile App** | **React 19 + Capacitor** | Native iOS & Android wrapper (`@capacitor/core`, `@capacitor/cli`, `@capacitor/preferences`, `@capacitor/haptics`, `@capacitor/clipboard`) sharing the unified React UI and design system |
 
 ---
 
@@ -44,9 +44,10 @@
 - Dynamic QR token generation (HS256 JWS with `jti` and TTL).
 - Atomic redemption confirmation with row-level locking (`SELECT ... FOR UPDATE` or Supabase RPC function) and anti-replay protection.
 
-### Phase 3: Mobile Application Development (React Native & Expo)
-- **Customer Interface**: Digital loyalty card, dynamic allocation QR, reward catalog, redemption QR modal, transaction history.
-- **Staff Interface**: Camera QR barcode scanner, quick counter lookup, purchase spend allocation form, redemption confirmation receipt.
+### Phase 3: Mobile Application Development (React 19 & Capacitor)
+- **Native Capacitor Shell (`capacitor.config.ts` & `src/lib/capacitor/nativeBridge.ts`)**: Shared React 19 codebase packaged for iOS and Android with `@capacitor/preferences` auth storage, `@capacitor/haptics`, `@capacitor/clipboard`, `@capacitor/status-bar`, and `@capacitor/app` deep-link handling.
+- **Customer Interface (`/wallet`)**: Digital loyalty card with live variable-weight `Fraunces` numerals, dynamic allocation QR, reward catalog, redemption QR modal, and transaction history.
+- **Staff Interface (`/pos`)**: QR & deep-link scanner, quick counter lookup, purchase spend allocation form, and redemption confirmation receipt.
 
 ### Phase 4: Owner Admin Dashboard (Next.js Web Portal)
 - Live program health analytics (point velocity, redemption growth, reward popularity, staff activity).

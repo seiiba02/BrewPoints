@@ -2,7 +2,6 @@ import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import { User, UserRole } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
-import { getLoyaltyConfig } from '@/lib/config/loyalty';
 
 export interface SessionCookiePayload {
   id: number;
@@ -13,11 +12,11 @@ export interface SessionCookiePayload {
 }
 
 const DEFAULT_DEMO_USER: User = {
-  id: BigInt(1),
-  firebase_uid: 'demo-customer-uid',
+  id: BigInt(3),
+  firebase_uid: 'customer-dummy-uid-001',
   name: 'Jane Customer',
-  email: 'customer@brewflow.internal',
-  phone: '+1 (555) 492-8810',
+  email: 'customer@brewpoints.local',
+  phone: '+1-555-0103',
   role: 'customer',
   created_at: new Date(),
   updated_at: new Date(),
@@ -28,40 +27,39 @@ const DEFAULT_DEMO_USER: User = {
  * Resolve the currently authenticated user from either:
  * 1. `Authorization: Bearer <token>` header (REST API / mobile / test requests)
  * 2. `auth_user` httpOnly session cookie (Next.js React web app)
- * 3. Graceful fallback for zero-downtime portfolio demo mode.
+ * 3. Server Component fallback when invoked without a request object.
  */
 export async function resolveRequestUser(
   request?: NextRequest | Request
 ): Promise<User | null> {
-  // Check NextRequest headers
   if (request) {
     const authHeader = request.headers.get('authorization');
     if (authHeader && authHeader.toLowerCase().startsWith('bearer ')) {
       const token = authHeader.slice(7).trim();
       if (token) {
-        try {
-          const dbUser = await prisma.user.findFirst({
-            where: { firebase_uid: token, deleted_at: null },
-          });
-          if (dbUser) return dbUser;
-        } catch {
-          // Fallback to demo user if DB is offline
-          return DEFAULT_DEMO_USER;
-        }
+        const dbUser = await prisma.user.findFirst({
+          where: { firebase_uid: token, deleted_at: null },
+        });
+        return dbUser ?? null;
       }
     }
 
-    // Check NextRequest cookies
     if ('cookies' in request && typeof request.cookies?.get === 'function') {
       const rawCookie = request.cookies.get('auth_user')?.value;
       if (rawCookie) {
         try {
           const parsed = JSON.parse(rawCookie) as Partial<SessionCookiePayload>;
+          if (parsed.firebase_uid) {
+            const dbUser = await prisma.user.findFirst({
+              where: { firebase_uid: parsed.firebase_uid, deleted_at: null },
+            });
+            if (dbUser) return dbUser;
+          }
           return {
-            id: BigInt(parsed.id || 1),
-            firebase_uid: parsed.firebase_uid || 'demo-uid',
-            name: parsed.name || 'Demo User',
-            email: parsed.email || 'demo@brewflow.internal',
+            id: BigInt(parsed.id || 3),
+            firebase_uid: parsed.firebase_uid || 'customer-dummy-uid-001',
+            name: parsed.name || 'Jane Customer',
+            email: parsed.email || 'customer@brewpoints.local',
             phone: null,
             role: (parsed.role as UserRole) || 'customer',
             created_at: new Date(),
@@ -69,23 +67,52 @@ export async function resolveRequestUser(
             deleted_at: null,
           };
         } catch {
-          // Ignore parse errors
+          // Ignore malformed cookie
         }
       }
     }
+
+    try {
+      const cookieStore = await cookies();
+      const rawCookie = cookieStore.get('auth_user')?.value;
+      if (rawCookie) {
+        const parsed = JSON.parse(rawCookie) as Partial<SessionCookiePayload>;
+        if (parsed.firebase_uid) {
+          const dbUser = await prisma.user.findFirst({
+            where: { firebase_uid: parsed.firebase_uid, deleted_at: null },
+          });
+          if (dbUser) return dbUser;
+        }
+        return {
+          id: BigInt(parsed.id || 3),
+          firebase_uid: parsed.firebase_uid || 'customer-dummy-uid-001',
+          name: parsed.name || 'Jane Customer',
+          email: parsed.email || 'customer@brewpoints.local',
+          phone: null,
+          role: (parsed.role as UserRole) || 'customer',
+          created_at: new Date(),
+          updated_at: new Date(),
+          deleted_at: null,
+        };
+      }
+    } catch {
+      // Outside Next.js request context
+    }
+
+    return null;
   }
 
-  // Fallback for Server Components / Server Actions using next/headers
+  // Server Component invocation without explicit request object
   try {
     const cookieStore = await cookies();
     const rawCookie = cookieStore.get('auth_user')?.value;
     if (rawCookie) {
       const parsed = JSON.parse(rawCookie) as Partial<SessionCookiePayload>;
       return {
-        id: BigInt(parsed.id || 1),
-        firebase_uid: parsed.firebase_uid || 'demo-uid',
-        name: parsed.name || 'Demo User',
-        email: parsed.email || 'demo@brewflow.internal',
+        id: BigInt(parsed.id || 3),
+        firebase_uid: parsed.firebase_uid || 'customer-dummy-uid-001',
+        name: parsed.name || 'Jane Customer',
+        email: parsed.email || 'customer@brewpoints.local',
         phone: null,
         role: (parsed.role as UserRole) || 'customer',
         created_at: new Date(),
@@ -94,10 +121,9 @@ export async function resolveRequestUser(
       };
     }
   } catch {
-    // cookies() may throw outside Next.js request context
+    // Ignore outside request context
   }
 
-  // Demo fallback for portfolio evaluators
   return DEFAULT_DEMO_USER;
 }
 
@@ -133,7 +159,11 @@ export async function authenticateRequest(
     };
   }
 
-  if (allowedRoles && allowedRoles.length > 0 && !hasRequiredRole(user, allowedRoles)) {
+  if (
+    allowedRoles &&
+    allowedRoles.length > 0 &&
+    !hasRequiredRole(user, allowedRoles)
+  ) {
     return {
       errorResponse: NextResponse.json(
         { message: 'Forbidden. Insufficient role.' },
